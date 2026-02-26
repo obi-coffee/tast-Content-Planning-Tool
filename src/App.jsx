@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import { defaultBrandVoice } from "./Components.jsx";
 import { Pipeline, Calendar, BrandVoice, Captions } from "./Views.jsx";
 import { Campaigns } from "./Campaigns.jsx";
+import { InstagramGrid } from "./InstagramGrid.jsx";
+import { Analytics } from "./Analytics.jsx";
 import { useContent, useCampaigns } from "./hooks/useContent.js";
 import { useTeamMember } from "./hooks/useTeamMember.js";
 import TeamPicker from "./components/TeamPicker.jsx";
 import { Avatar } from "./components/Avatar.jsx";
 
-const TABS = ["Pipeline", "Calendar", "Campaigns", "Brand Voice", "Captions"];
+const TABS = ["Pipeline", "Calendar", "Campaigns", "Grid", "Analytics", "Brand Voice", "Captions"];
 
 // localStorage helpers for non-Supabase data
 const store = {
@@ -112,8 +114,10 @@ export default function App() {
               {tab === 0 && <Pipeline items={items} setItems={setItems} campaigns={campaigns} products={products} setProducts={setProducts} currentMember={member} />}
               {tab === 1 && <Calendar items={items} setItems={setItems} campaigns={campaigns} products={products} setProducts={setProducts} currentMember={member} />}
               {tab === 2 && <Campaigns campaigns={campaigns} setCampaigns={setCampaigns} allItems={items} setAllItems={setItems} products={products} setProducts={setProducts} currentMember={member} />}
-              {tab === 3 && <BrandVoice voice={brandVoice} setVoice={setBrandVoice} />}
-              {tab === 4 && <Captions brandVoice={brandVoice} />}
+              {tab === 3 && <InstagramGrid items={items} setItems={setItems} campaigns={campaigns} products={products} setProducts={setProducts} currentMember={member} />}
+              {tab === 4 && <Analytics items={items} campaigns={campaigns} />}
+              {tab === 5 && <BrandVoice voice={brandVoice} setVoice={setBrandVoice} />}
+              {tab === 6 && <Captions brandVoice={brandVoice} />}
             </>
           )}
         </div>
