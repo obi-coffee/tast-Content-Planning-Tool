@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PIPELINE_STAGES, TYPE_OPTIONS, STAGE_META, driveThumb, Tag, Modal, Inp, Sel, Txt, ChannelPicker, CampaignProgress, ContentForm } from "./Components.jsx";
+import { PIPELINE_STAGES, TYPE_OPTIONS, STAGE_META, driveThumb, Tag, Modal, Inp, Sel, Txt, ChannelPicker, CampaignProgress, ContentForm, flattenChannels, normalizeChannels } from "./Components.jsx";
 import CommentsPanel from "./components/CommentsPanel.jsx";
 import { Avatar } from "./components/Avatar.jsx";
 
@@ -13,7 +13,7 @@ export function Campaigns({ campaigns, setCampaigns, allItems, setAllItems, prod
   const [dragOverIdx, setDragOverIdx] = useState(null);
   const [commentItemId, setCommentItemId] = useState(null);
 
-  const emptyCamp = {name:"",dropDate:"",goal:"",pillars:"",channels:[],bigThink:"",status:"Planning",keyMessage:"",tone:""};
+  const emptyCamp = {name:"",dropDate:"",goal:"",pillars:"",channels:{primary:"",secondary:[]},bigThink:"",status:"Planning",keyMessage:"",tone:""};
   const [campForm, setCampForm] = useState(emptyCamp);
   const cf = (k,v) => setCampForm(p=>({...p,[k]:v}));
 
@@ -44,7 +44,7 @@ export function Campaigns({ campaigns, setCampaigns, allItems, setAllItems, prod
     const c = campaigns.find(x=>x.id===active.id)||active;
     const linked = allItems.filter(i=>String(i.campaignId)===String(c.id));
     const seqItems = [...linked].sort((a,b)=>(a.seq||0)-(b.seq||0));
-    const channels = Array.isArray(c.channels)?c.channels:[];
+    const channels = flattenChannels(c.channels);
 
     const applyReorder = (from,to) => {
       const reordered = reorder(seqItems,from,to);
@@ -84,7 +84,7 @@ export function Campaigns({ campaigns, setCampaigns, allItems, setAllItems, prod
         {activeTab==="content" && (
           <div>
             <div className="flex justify-end mb-3">
-              <button onClick={()=>{setEditContent({stage:"In Campaign",channels:c.channels||["Instagram"],type:TYPE_OPTIONS[0],campaignId:String(c.id)});setShowContentForm(true);}}
+              <button onClick={()=>{setEditContent({stage:"In Campaign",channels:normalizeChannels(c.channels).primary ? normalizeChannels(c.channels) : {primary:"Instagram",secondary:[]},type:TYPE_OPTIONS[0],campaignId:String(c.id)});setShowContentForm(true);}}
                 style={{background:"#F05881"}} className="hover:opacity-90 text-white text-sm px-4 py-2 rounded-lg font-medium">
                 + Add Content
               </button>
@@ -96,7 +96,7 @@ export function Campaigns({ campaigns, setCampaigns, allItems, setAllItems, prod
                   <p className="text-xs text-stone-300 mb-2">Drag to reorder publish sequence</p>
                   {seqItems.map((item,idx)=>{
                     const thumb = driveThumb(item.driveUrl);
-                    const chs = Array.isArray(item.channels)?item.channels:[];
+                    const chs = flattenChannels(item.channels);
                     return (
                       <div key={item.id} draggable
                         onDragStart={()=>setDragIdx(idx)}
@@ -186,7 +186,7 @@ export function Campaigns({ campaigns, setCampaigns, allItems, setAllItems, prod
       <div className="space-y-3">
         {campaigns.map(c=>{
           const linked = allItems.filter(i=>String(i.campaignId)===String(c.id));
-          const channels = Array.isArray(c.channels)?c.channels:[];
+          const channels = flattenChannels(c.channels);
           return (
             <div key={c.id} onClick={()=>{setActive(c);setActiveTab("content");}}
               className="bg-white rounded-xl border border-stone-100 p-4 shadow-sm cursor-pointer hover:border-[#fa8f9c] transition-colors">

@@ -98,20 +98,99 @@ export function Txt({ label, rows=4, ...p }) {
   );
 }
 
-export function ChannelPicker({ selected=[], onChange }) {
-  const toggle = ch => onChange(selected.includes(ch) ? selected.filter(c=>c!==ch) : [...selected, ch]);
+// ── Channel Picker: primary + secondary ───────────────────────────────────
+// Data shape: { primary: "Instagram", secondary: ["Email"] }
+// Legacy shape (array) is supported transparently.
+
+export function normalizeChannels(raw) {
+  if (!raw) return { primary: "", secondary: [] };
+  if (Array.isArray(raw)) {
+    // migrate legacy array — first item becomes primary
+    return { primary: raw[0] || "", secondary: raw.slice(1) };
+  }
+  if (typeof raw === "object" && "primary" in raw) return raw;
+  return { primary: "", secondary: [] };
+}
+
+export function flattenChannels(ch) {
+  // Returns a plain array for display/filter compatibility
+  const n = normalizeChannels(ch);
+  return n.primary ? [n.primary, ...n.secondary] : n.secondary;
+}
+
+export function ChannelPicker({ selected={}, onChange }) {
+  const norm = normalizeChannels(selected);
+
+  const setPrimary = (ch) => {
+    const secondary = norm.secondary.filter(s => s !== ch);
+    onChange({ primary: ch, secondary });
+  };
+
+  const toggleSecondary = (ch) => {
+    if (ch === norm.primary) return; // can't also be secondary
+    const already = norm.secondary.includes(ch);
+    onChange({
+      primary: norm.primary,
+      secondary: already ? norm.secondary.filter(s => s !== ch) : [...norm.secondary, ch],
+    });
+  };
+
   return (
     <div className="mb-3">
       <label className="block text-sm font-medium text-stone-600 mb-2">Channels</label>
-      <div className="flex flex-wrap gap-2">
-        {CHANNEL_OPTIONS.map(ch => (
-          <button key={ch} type="button" onClick={()=>toggle(ch)}
-            className="text-xs px-3 py-1.5 rounded-full border font-medium transition-all"
-            style={selected.includes(ch)?{background:"#F05881",color:"white",borderColor:"#F05881"}:{background:"white",color:"#78716c",borderColor:"#e7e5e4"}}>
-            {ch}
-          </button>
-        ))}
+
+      {/* Primary */}
+      <div className="mb-2">
+        <p className="text-xs text-stone-400 mb-1.5 uppercase tracking-wider font-medium">Primary</p>
+        <div className="flex flex-wrap gap-2">
+          {CHANNEL_OPTIONS.map(ch => {
+            const active = norm.primary === ch;
+            return (
+              <button key={ch} type="button" onClick={() => setPrimary(ch)}
+                className="text-xs px-3 py-1.5 rounded-full border font-medium transition-all flex items-center gap-1"
+                style={active
+                  ? { background: "#F05881", color: "white", borderColor: "#F05881" }
+                  : { background: "white", color: "#78716c", borderColor: "#e7e5e4" }}>
+                {active && <span className="text-xs">★</span>}
+                {ch}
+              </button>
+            );
+          })}
+        </div>
       </div>
+
+      {/* Secondary */}
+      {norm.primary && (
+        <div>
+          <p className="text-xs text-stone-400 mb-1.5 uppercase tracking-wider font-medium">Also publishing to</p>
+          <div className="flex flex-wrap gap-2">
+            {CHANNEL_OPTIONS.filter(ch => ch !== norm.primary).map(ch => {
+              const active = norm.secondary.includes(ch);
+              return (
+                <button key={ch} type="button" onClick={() => toggleSecondary(ch)}
+                  className="text-xs px-3 py-1.5 rounded-full border font-medium transition-all"
+                  style={active
+                    ? { background: "#fa8f9c22", color: "#a12f52", borderColor: "#fa8f9c" }
+                    : { background: "white", color: "#a8a29e", borderColor: "#e7e5e4" }}>
+                  {ch}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Summary badge */}
+      {norm.primary && (
+        <div className="mt-2 flex flex-wrap gap-1">
+          <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: "#fff0f4", color: "#F05881" }}>
+            ★ {norm.primary}
+          </span>
+          {norm.secondary.map(s => (
+            <span key={s} className="text-xs px-2 py-0.5 rounded-full text-stone-500 bg-stone-100">{s}</span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -167,15 +246,52 @@ export function CampaignProgress({ items }) {
 }
 
 export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, lockCampaignId, products=[], setProducts=()=>{}, onOpenComments, currentMember }) {
-  const [form, setForm] = useState({
-    title:"", type:TYPE_OPTIONS[0], channels:["Instagram"],
-    stage:"Idea", campaignId:"", date:"", notes:"", product:"",
-    draftCopy:"", driveUrl:"", owner:"", assigneeId:"", seq:0,
-    ...initial
+  const [form, setForm] = useState(() => {
+    const base = {
+      title:"", type:TYPE_OPTIONS[0],
+      channels: { primary: "Instagram", secondary: [] },
+      stage:"Idea", campaignId:"", date:"", notes:"", product:"",
+      draftCopy:"", driveUrl:"", driveUrls:[], owner:"", assigneeId:"", seq:0,
+    };
+    if (!initial) return base;
+    // Normalize legacy channels array → new shape
+    const channels = normalizeChannels(initial.channels);
+    // Normalize driveUrls — if only driveUrl exists, seed driveUrls from it
+    const driveUrls = initial.driveUrls?.length
+      ? initial.driveUrls
+      : initial.driveUrl ? [initial.driveUrl] : [];
+    return { ...base, ...initial, channels, driveUrls };
   });
+
   const [showProductManager, setShowProductManager] = useState(false);
   const f = (k,v) => setForm(p=>({...p,[k]:v}));
-  const save = () => { if (!form.title.trim()) return; onSave(form); onClose(); };
+
+  const isInstagramPrimary = normalizeChannels(form.channels).primary === "Instagram";
+
+  // Drive URL helpers
+  const addDriveUrl = () => f("driveUrls", [...(form.driveUrls||[]), ""]);
+  const updateDriveUrl = (i, val) => {
+    const arr = [...(form.driveUrls||[])];
+    arr[i] = val;
+    f("driveUrls", arr);
+  };
+  const removeDriveUrl = (i) => f("driveUrls", (form.driveUrls||[]).filter((_,idx)=>idx!==i));
+  const moveDriveUrl = (i, dir) => {
+    const arr = [...(form.driveUrls||[])];
+    const to = i + dir;
+    if (to < 0 || to >= arr.length) return;
+    [arr[i], arr[to]] = [arr[to], arr[i]];
+    f("driveUrls", arr);
+  };
+
+  const save = () => {
+    if (!form.title.trim()) return;
+    // Keep driveUrl as the first image for backward compat
+    const driveUrls = (form.driveUrls||[]).filter(u=>u.trim());
+    onSave({ ...form, driveUrls, driveUrl: driveUrls[0] || "" });
+    onClose();
+  };
+
   const linkedCampaign = campaigns.find(c=>String(c.id)===String(form.campaignId));
 
   return (
@@ -184,7 +300,10 @@ export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, loc
       <ProductSelector value={form.product} onChange={v=>f("product",v)} products={products} onManage={()=>setShowProductManager(true)} />
       {showProductManager && <ProductManager products={products} setProducts={setProducts} onClose={()=>setShowProductManager(false)} />}
       <Sel label="Content type" options={TYPE_OPTIONS} value={form.type} onChange={e=>f("type",e.target.value)} />
-      <ChannelPicker selected={form.channels||[]} onChange={v=>f("channels",v)} />
+
+      {/* ── Primary + Secondary channels ── */}
+      <ChannelPicker selected={form.channels} onChange={v=>f("channels",v)} />
+
       <StagePicker value={form.stage} onChange={v=>f("stage",v)} />
       {!lockCampaignId && campaigns.length>0 && (
         <div className="mb-3">
@@ -211,14 +330,70 @@ export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, loc
 
       <Txt label="Draft copy / caption" rows={3} value={form.draftCopy} onChange={e=>f("draftCopy",e.target.value)} placeholder="Paste your draft caption or copy here..." />
       <Txt label="Notes" value={form.notes} onChange={e=>f("notes",e.target.value)} placeholder="Production notes, links, angles..." />
+
+      {/* ── Images ── */}
       <div className="mb-3">
-        <label className="block text-sm font-medium text-stone-600 mb-1">Google Drive image URL</label>
-        <input value={form.driveUrl} onChange={e=>f("driveUrl",e.target.value)}
-          placeholder="Paste Drive share link"
-          className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#F05881]/40" />
-        {form.driveUrl && <img src={driveThumb(form.driveUrl)} alt="preview" className="mt-2 w-full rounded-lg object-cover" style={{maxHeight:160}} onError={e=>e.target.style.display="none"} />}
-        <p className="text-xs text-stone-300 mt-1">File must be "Anyone with the link can view"</p>
+        <div className="flex items-center justify-between mb-1">
+          <label className="block text-sm font-medium text-stone-600">
+            {isInstagramPrimary ? "Photos / Carousel" : "Google Drive image"}
+          </label>
+          {isInstagramPrimary && (
+            <span className="text-xs text-stone-400">{(form.driveUrls||[]).filter(u=>u).length} image{(form.driveUrls||[]).filter(u=>u).length !== 1 ? "s" : ""}</span>
+          )}
+        </div>
+
+        {isInstagramPrimary ? (
+          /* ── Multi-image for Instagram ── */
+          <div>
+            {(form.driveUrls||[]).map((url, i) => (
+              <div key={i} className="mb-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-semibold text-stone-400 w-5">#{i+1}</span>
+                  <input
+                    value={url}
+                    onChange={e => updateDriveUrl(i, e.target.value)}
+                    placeholder="Paste Drive share link"
+                    className="flex-1 border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#F05881]/40"
+                  />
+                  <div className="flex gap-1 shrink-0">
+                    <button type="button" onClick={()=>moveDriveUrl(i,-1)} disabled={i===0}
+                      className="text-stone-300 hover:text-stone-500 disabled:opacity-30 text-sm px-1">↑</button>
+                    <button type="button" onClick={()=>moveDriveUrl(i,1)} disabled={i===(form.driveUrls||[]).length-1}
+                      className="text-stone-300 hover:text-stone-500 disabled:opacity-30 text-sm px-1">↓</button>
+                    <button type="button" onClick={()=>removeDriveUrl(i)}
+                      className="text-stone-300 hover:text-red-400 text-sm px-1">✕</button>
+                  </div>
+                </div>
+                {url && (
+                  <img src={driveThumb(url)} alt={`preview ${i+1}`}
+                    className="ml-7 w-24 h-24 rounded-lg object-cover border border-stone-100"
+                    onError={e=>e.target.style.display="none"} />
+                )}
+              </div>
+            ))}
+            <button type="button" onClick={addDriveUrl}
+              className="text-xs font-medium px-3 py-1.5 rounded-lg border border-dashed border-stone-300 text-stone-400 hover:border-[#F05881] hover:text-[#F05881] transition-colors w-full mt-1">
+              + Add image
+            </button>
+            {(form.driveUrls||[]).length > 1 && (
+              <p className="text-xs text-stone-300 mt-1">First image is the cover. Reorder with ↑↓.</p>
+            )}
+          </div>
+        ) : (
+          /* ── Single image for non-Instagram ── */
+          <div>
+            <input value={(form.driveUrls||[])[0]||form.driveUrl||""} onChange={e=>{f("driveUrls",[e.target.value]);f("driveUrl",e.target.value);}}
+              placeholder="Paste Drive share link"
+              className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#F05881]/40" />
+            {((form.driveUrls||[])[0]||form.driveUrl) && (
+              <img src={driveThumb((form.driveUrls||[])[0]||form.driveUrl)} alt="preview"
+                className="mt-2 w-full rounded-lg object-cover" style={{maxHeight:160}} onError={e=>e.target.style.display="none"} />
+            )}
+          </div>
+        )}
+        <p className="text-xs text-stone-300 mt-1">Files must be "Anyone with the link can view"</p>
       </div>
+
       <div className="flex gap-2 mt-4">
         <button onClick={save} style={{background:"#F05881"}} className="flex-1 hover:opacity-90 text-white py-2 rounded-lg font-medium text-sm">Save</button>
         {initial?.id && onOpenComments && (

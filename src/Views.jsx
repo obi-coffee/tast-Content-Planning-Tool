@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { PIPELINE_STAGES, CHANNEL_OPTIONS, TYPE_OPTIONS, STAGE_META, TYPE_COLORS, driveThumb, Tag, Modal, Inp, Sel, Txt, ChannelPicker, CampaignProgress, ContentForm } from "./Components.jsx";
+import { PIPELINE_STAGES, CHANNEL_OPTIONS, TYPE_OPTIONS, STAGE_META, TYPE_COLORS, driveThumb, Tag, Modal, Inp, Sel, Txt, ChannelPicker, CampaignProgress, ContentForm, flattenChannels } from "./Components.jsx";
 import { Avatar } from "./components/Avatar.jsx";
 import CommentsPanel from "./components/CommentsPanel.jsx";
 
@@ -31,7 +31,7 @@ function getItemColor(item, products) {
 function ContentCard({ item, campaigns, onClick, compact, currentMember }) {
   const [showComments, setShowComments] = useState(false);
   const campaign = campaigns.find(c=>String(c.id)===String(item.campaignId));
-  const channels = Array.isArray(item.channels)?item.channels:item.channel?[item.channel]:[];
+  const channels = flattenChannels(item.channels);
   const thumb = driveThumb(item.driveUrl);
   return (
     <>
@@ -149,7 +149,7 @@ export function Pipeline({ items, setItems, campaigns, products, setProducts, cu
                 </div>
                 {stageItems.map(item=>{
                   const campaign = campaigns.find(c=>String(c.id)===String(item.campaignId));
-                  const channels = Array.isArray(item.channels)?item.channels:[];
+                  const channels = flattenChannels(item.channels);
                   const thumb = driveThumb(item.driveUrl);
                   return (
                     <div key={item.id} onClick={()=>openEdit(item)}
@@ -268,7 +268,7 @@ export function Calendar({ items, setItems, campaigns, products, setProducts, cu
               {dayItems.map(item=>{
                 const { color } = getItemColor(item, products);
                 const campaign = campaigns.find(c=>String(c.id)===String(item.campaignId));
-                const channels = Array.isArray(item.channels)?item.channels:[];
+                const channels = flattenChannels(item.channels);
                 const thumb = driveThumb(item.driveUrl);
                 return (
                   <div key={item.id} onClick={()=>openEdit(item)}
@@ -296,7 +296,7 @@ export function Calendar({ items, setItems, campaigns, products, setProducts, cu
             {undated.map(item=>{
               const { color } = getItemColor(item, products);
               const campaign = campaigns.find(c=>String(c.id)===String(item.campaignId));
-              const channels = Array.isArray(item.channels)?item.channels:[];
+              const channels = flattenChannels(item.channels);
               return (
                 <div key={item.id} onClick={()=>openEdit(item)}
                   className="bg-white rounded-xl border border-stone-100 p-3.5 mb-2 cursor-pointer"

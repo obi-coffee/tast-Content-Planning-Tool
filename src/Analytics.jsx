@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { PIPELINE_STAGES, STAGE_META, CHANNEL_OPTIONS, TYPE_OPTIONS } from "./Components.jsx";
+import { PIPELINE_STAGES, STAGE_META, CHANNEL_OPTIONS, TYPE_OPTIONS, flattenChannels } from "./Components.jsx";
 import { Avatar } from "./components/Avatar.jsx";
 import { TEAM_MEMBERS } from "./lib/team.js";
 
@@ -224,10 +224,7 @@ function GapDetector({ items }) {
     }
 
     // No Instagram content
-    const igItems = items.filter(i => {
-      const chs = Array.isArray(i.channels) ? i.channels : [];
-      return chs.includes("Instagram");
-    });
+    const igItems = items.filter(i => flattenChannels(i.channels).includes("Instagram"));
     if (igItems.length === 0) {
       issues.push({ type: "channel", label: "No Instagram content", detail: "No posts tagged for Instagram", items: [], severity: "low" });
     }
@@ -290,7 +287,7 @@ export function Analytics({ items, campaigns }) {
   // By stage
   const byCh = useMemo(() => CHANNEL_OPTIONS.map(ch => ({
     label: ch,
-    count: items.filter(i => (Array.isArray(i.channels) ? i.channels : []).includes(ch)).length,
+    count: items.filter(i => flattenChannels(i.channels).includes(ch)).length,
   })), [items]);
   const maxCh = Math.max(...byCh.map(c => c.count), 1);
 

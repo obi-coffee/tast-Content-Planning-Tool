@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { driveThumb, STAGE_META, Tag, Modal, ContentForm } from "./Components.jsx";
+import { driveThumb, STAGE_META, Tag, Modal, ContentForm, flattenChannels } from "./Components.jsx";
 import { Avatar } from "./components/Avatar.jsx";
 
 const CHANNEL = "Instagram";
@@ -77,6 +77,14 @@ function GridCell({ item, index, isHighlighted, onClick, size = "md" }) {
           style={{ background: color, border: "1.5px solid white" }} />
       )}
 
+      {/* Carousel indicator */}
+      {item && item.driveUrls?.length > 1 && (
+        <div className="absolute top-1.5 left-1.5 bg-black/50 rounded px-1 py-0.5 flex items-center gap-0.5">
+          <span style={{ color: "white", fontSize: 8 }}>⧉</span>
+          <span style={{ color: "white", fontSize: 8 }}>{item.driveUrls.length}</span>
+        </div>
+      )}
+
       {/* Empty slot number */}
       {!item && (
         <span className="absolute inset-0 flex items-center justify-center text-stone-300 font-medium" style={{ fontSize: 11 }}>
@@ -108,7 +116,26 @@ function DetailPanel({ item, campaigns, onClose, onEdit }) {
           className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center text-sm hover:bg-black/60 transition-colors">
           ✕
         </button>
+        {item.driveUrls?.length > 1 && (
+          <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
+            {item.driveUrls.map((_, i) => (
+              <div key={i} className="w-1.5 h-1.5 rounded-full" style={{ background: i === 0 ? "white" : "rgba(255,255,255,0.5)" }} />
+            ))}
+          </div>
+        )}
       </div>
+
+      {/* Carousel strip */}
+      {item.driveUrls?.length > 1 && (
+        <div className="flex gap-1.5 px-3 pt-2 overflow-x-auto">
+          {item.driveUrls.map((url, i) => (
+            <img key={i} src={driveThumb(url)} alt={`slide ${i+1}`}
+              className="w-12 h-12 rounded-md object-cover shrink-0 border-2"
+              style={{ borderColor: i === 0 ? "#F05881" : "transparent" }}
+              onError={e => e.target.style.display = "none"} />
+          ))}
+        </div>
+      )}
 
       <div className="p-4">
         <div className="flex items-start justify-between gap-2 mb-2">
@@ -154,8 +181,7 @@ export function InstagramGrid({ items, setItems, campaigns, products, setProduct
   const igItems = useMemo(() => {
     return items
       .filter(i => {
-        const channels = Array.isArray(i.channels) ? i.channels : i.channel ? [i.channel] : [];
-        return channels.includes(CHANNEL);
+        return flattenChannels(i.channels).includes(CHANNEL);
       })
       .filter(i => {
         if (filter === "scheduled") return i.date && i.stage !== "Published";
