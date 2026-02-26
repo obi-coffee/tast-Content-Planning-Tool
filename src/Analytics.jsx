@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { PIPELINE_STAGES, STAGE_META, CHANNEL_OPTIONS, TYPE_OPTIONS, flattenChannels } from "./Components.jsx";
+import { PIPELINE_STAGES, STAGE_META, CHANNEL_OPTIONS, TYPE_OPTIONS, INTENT_BUCKET, INTENT_META, PHASES, getPhaseForDate, flattenChannels } from "./Components.jsx";
 import { Avatar } from "./components/Avatar.jsx";
 import { TEAM_MEMBERS } from "./lib/team.js";
 
@@ -291,10 +291,36 @@ export function Analytics({ items, campaigns }) {
   })), [items]);
   const maxCh = Math.max(...byCh.map(c => c.count), 1);
 
-  // By type
+  // 70/20/10 ratio
+  const intentCounts = useMemo(() => {
+    const counts = { culture: 0, brand: 0, conversion: 0 };
+    items.forEach(i => {
+      const bucket = INTENT_BUCKET[i.type];
+      if (bucket) counts[bucket]++;
+    });
+    return counts;
+  }, [items]);
+  const intentTotal = intentCounts.culture + intentCounts.brand + intentCounts.conversion;
+
+  // Phase progress
+  const phaseStats = useMemo(() => {
+    const todayStr = today.toISOString().slice(0, 10);
+    return PHASES.map(p => {
+      const phaseItems = items.filter(i => i.date && i.date >= p.start && i.date <= p.end);
+      const published = phaseItems.filter(i => i.stage === "Published").length;
+      const planned   = phaseItems.length;
+      const isActive  = todayStr >= p.start && todayStr <= p.end;
+      const isPast    = todayStr > p.end;
+      const isFuture  = todayStr < p.start;
+      return { ...p, phaseItems, published, planned, isActive, isPast, isFuture };
+    });
+  }, [items, today]);
+
+  // By type — updated to use new themes
   const byType = useMemo(() => TYPE_OPTIONS.map(t => ({
     label: t,
     count: items.filter(i => i.type === t).length,
+    bucket: INTENT_BUCKET[t],
   })).filter(t => t.count > 0).sort((a,b) => b.count - a.count), [items]);
   const maxType = Math.max(...byType.map(t => t.count), 1);
 
@@ -338,6 +364,120 @@ export function Analytics({ items, campaigns }) {
         <StatCard label="This month" value={thisMonthCount} sub="scheduled or published" accent="#fa8f9c" />
       </div>
 
+      {/* ── 70/20/10 Ratio Tracker ── */}
+      <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 mb-5">
+        <div className="flex items-start justify-between mb-3">
+          <div>
+            <p className="text-sm font-semibold text-stone-800">Content ratio</p>
+            <p className="text-xs text-stone-400">Target: 70% culture · 20% brand · 10% conversion</p>
+          </div>
+          {intentTotal === 0 && <span className="text-xs text-stone-300">No themed posts yet</span>}
+        </div>
+        {intentTotal > 0 && (
+          <>
+            {/* Stacked bar */}
+            <div className="flex h-4 rounded-full overflow-hidden mb-3 gap-px">
+              {Object.entries(intentCounts).map(([bucket, count]) => {
+                const pct = (count / intentTotal) * 100;
+                const meta = INTENT_META[bucket];
+                return pct > 0 ? (
+                  <div key={bucket} title={`${meta.label}: ${Math.round(pct)}%`}
+                    className="transition-all" style={{ width: `${pct}%`, background: meta.color }} />
+                ) : null;
+              })}
+            </div>
+            {/* Bucket breakdown */}
+            <div className="grid grid-cols-3 gap-3">
+              {Object.entries(INTENT_META).map(([bucket, meta]) => {
+                const count = intentCounts[bucket] || 0;
+                const actual = intentTotal > 0 ? Math.round((count / intentTotal) * 100) : 0;
+                const target = meta.target;
+                const diff   = actual - target;
+                const onTrack = Math.abs(diff) <= 8;
+                return (
+                  <div key={bucket} className="rounded-xl p-3 border" style={{ borderColor: meta.color + "33", background: meta.color + "08" }}>
+                    <p className="text-xs font-medium text-stone-500 mb-1">{meta.label}</p>
+                    <div className="flex items-end gap-1.5">
+                      <span className="text-2xl font-bold leading-none" style={{ color: meta.color }}>{actual}%</span>
+                      <span className="text-xs text-stone-400 mb-0.5">/ {target}% target</span>
+                    </div>
+                    <p className="text-xs mt-1.5 font-medium" style={{ color: onTrack ? "#22c55e" : diff > 0 ? meta.color : "#f59e0b" }}>
+                      {onTrack ? "✓ On track" : diff > 0 ? `↑ ${diff}% over` : `↓ ${Math.abs(diff)}% under`}
+                    </p>
+                    <p className="text-xs text-stone-300 mt-0.5">{count} post{count !== 1 ? "s" : ""}</p>
+                  </div>
+                );
+              })}
+            </div>
+            {/* Theme breakdown per bucket */}
+            <div className="mt-3 pt-3 border-t border-stone-50">
+              <p className="text-xs text-stone-400 mb-2">Theme distribution</p>
+              <div className="flex flex-wrap gap-1.5">
+                {byType.map(t => (
+                  <span key={t.label} className="text-xs px-2 py-0.5 rounded-full font-medium"
+                    style={{ background: INTENT_META[t.bucket]?.color + "18" || "#f5f5f4", color: INTENT_META[t.bucket]?.color || "#78716c" }}>
+                    {t.label} · {t.count}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* ── Phase Progress ── */}
+      <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 mb-5">
+        <div className="mb-3">
+          <p className="text-sm font-semibold text-stone-800">Phase progress</p>
+          <p className="text-xs text-stone-400">36-week plan · Feb 23 → Oct 26, 2026</p>
+        </div>
+        <div className="space-y-3">
+          {phaseStats.map(p => {
+            const postPct = p.planned > 0 ? (p.published / p.planned) * 100 : 0;
+            return (
+              <div key={p.id} className="rounded-xl border p-3" style={{
+                borderColor: p.isActive ? p.color : "#f0ede9",
+                background:  p.isActive ? p.color + "08" : "white",
+                opacity:     p.isFuture ? 0.6 : 1,
+              }}>
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold text-stone-800">{p.name}</p>
+                      {p.isActive && (
+                        <span className="text-xs px-1.5 py-0.5 rounded-full font-semibold" style={{ background: p.color, color: "white" }}>Active</span>
+                      )}
+                      {p.isPast && <span className="text-xs text-stone-300">Complete</span>}
+                    </div>
+                    <p className="text-xs text-stone-400 mt-0.5">{p.subtitle}</p>
+                    <p className="text-xs text-stone-300 mt-0.5">{p.start} → {p.end}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-lg font-bold leading-none" style={{ color: p.color }}>{p.planned}</p>
+                    <p className="text-xs text-stone-400">posts</p>
+                  </div>
+                </div>
+                {/* Post progress bar */}
+                {p.planned > 0 && (
+                  <div className="mb-2">
+                    <div className="flex justify-between text-xs text-stone-400 mb-1">
+                      <span>{p.published} published</span>
+                      <span>{p.planned - p.published} remaining</span>
+                    </div>
+                    <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full transition-all" style={{ width: `${postPct}%`, background: p.color }} />
+                    </div>
+                  </div>
+                )}
+                {p.planned === 0 && (
+                  <p className="text-xs text-stone-300 italic">No posts scheduled for this phase yet</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="grid md:grid-cols-2 gap-5 mb-5">
         {/* ── Cadence ── */}
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
@@ -373,12 +513,13 @@ export function Analytics({ items, campaigns }) {
           ))}
         </div>
 
-        {/* ── By type ── */}
+        {/* ── By theme ── */}
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
-          <p className="text-sm font-semibold text-stone-800 mb-3">By content type</p>
+          <p className="text-sm font-semibold text-stone-800 mb-3">By theme</p>
           {byType.length === 0
             ? <p className="text-xs text-stone-300">No content yet</p>
-            : byType.map(t => <Bar key={t.label} label={t.label} value={t.count} max={maxType} count={t.count} />)}
+            : byType.map(t => <Bar key={t.label} label={t.label} value={t.count} max={maxType} count={t.count}
+                color={INTENT_META[t.bucket]?.color || PINK} />)}
         </div>
       </div>
 

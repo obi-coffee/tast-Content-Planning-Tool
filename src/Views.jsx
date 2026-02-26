@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { PIPELINE_STAGES, CHANNEL_OPTIONS, TYPE_OPTIONS, STAGE_META, TYPE_COLORS, driveThumb, Tag, Modal, Inp, Sel, Txt, ChannelPicker, CampaignProgress, ContentForm, flattenChannels } from "./Components.jsx";
+import { PIPELINE_STAGES, CHANNEL_OPTIONS, TYPE_OPTIONS, STAGE_META, TYPE_COLORS, driveThumb, Tag, Modal, Inp, Sel, Txt, ChannelPicker, CampaignProgress, ContentForm, flattenChannels, PhaseTag, PHASES, getPhaseForDate } from "./Components.jsx";
 import { Avatar } from "./components/Avatar.jsx";
 import CommentsPanel from "./components/CommentsPanel.jsx";
 
@@ -82,6 +82,8 @@ export function Pipeline({ items, setItems, campaigns, products, setProducts, cu
   const [editItem, setEditItem] = useState(null);
   const [dragItem, setDragItem] = useState(null);
   const [dragOver, setDragOver] = useState(null);
+  const [phaseFilter, setPhaseFilter] = useState("all");
+  const [themeFilter, setThemeFilter] = useState("all");
 
   const openEdit = item => { setEditItem(item); setShowForm(true); };
   const saveItem = form => {
@@ -90,9 +92,18 @@ export function Pipeline({ items, setItems, campaigns, products, setProducts, cu
   };
   const moveStage = (item,stage) => setItems(prev=>prev.map(i=>i.id===item.id?{...i,stage}:i));
 
+  const filteredItems = items.filter(item => {
+    if (phaseFilter !== "all") {
+      const phase = getPhaseForDate(item.date);
+      if (!phase || phase.id !== phaseFilter) return false;
+    }
+    if (themeFilter !== "all" && item.type !== themeFilter) return false;
+    return true;
+  });
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <h2 className="text-lg font-semibold text-stone-800">Content Pipeline</h2>
         <div className="flex items-center gap-2">
           <div className="flex bg-stone-100 rounded-lg p-0.5">
@@ -106,10 +117,42 @@ export function Pipeline({ items, setItems, campaigns, products, setProducts, cu
         </div>
       </div>
 
+      {/* Phase filter pills */}
+      <div className="flex gap-1.5 flex-wrap mb-2">
+        <button onClick={()=>setPhaseFilter("all")}
+          className="text-xs px-2.5 py-1 rounded-full border font-medium transition-all"
+          style={phaseFilter==="all"?{background:"#F05881",color:"white",borderColor:"#F05881"}:{background:"white",color:"#78716c",borderColor:"#e7e5e4"}}>
+          All phases
+        </button>
+        {PHASES.map(p => (
+          <button key={p.id} onClick={()=>setPhaseFilter(phaseFilter===p.id?"all":p.id)}
+            className="text-xs px-2.5 py-1 rounded-full border font-medium transition-all"
+            style={phaseFilter===p.id?{background:p.color,color:"white",borderColor:p.color}:{background:"white",color:p.color,borderColor:p.color+"66"}}>
+            {p.name.split("—")[0].trim()}
+          </button>
+        ))}
+      </div>
+
+      {/* Theme filter */}
+      <div className="flex gap-1.5 flex-wrap mb-4 overflow-x-auto pb-1">
+        <button onClick={()=>setThemeFilter("all")}
+          className="text-xs px-2.5 py-1 rounded-full border font-medium whitespace-nowrap transition-all"
+          style={themeFilter==="all"?{background:"#F05881",color:"white",borderColor:"#F05881"}:{background:"white",color:"#78716c",borderColor:"#e7e5e4"}}>
+          All themes
+        </button>
+        {TYPE_OPTIONS.map(t => (
+          <button key={t} onClick={()=>setThemeFilter(themeFilter===t?"all":t)}
+            className="text-xs px-2.5 py-1 rounded-full border font-medium whitespace-nowrap transition-all"
+            style={themeFilter===t?{background:"#F05881",color:"white",borderColor:"#F05881"}:{background:"white",color:"#78716c",borderColor:"#e7e5e4"}}>
+            {t}
+          </button>
+        ))}
+      </div>
+
       {view==="kanban" ? (
         <div className="flex gap-3 overflow-x-auto pb-4" style={{minHeight:400}}>
           {PIPELINE_STAGES.map(stage=>{
-            const stageItems = items.filter(i=>i.stage===stage);
+            const stageItems = filteredItems.filter(i=>i.stage===stage);
             const isOver = dragOver===stage;
             return (
               <div key={stage}
@@ -138,7 +181,7 @@ export function Pipeline({ items, setItems, campaigns, products, setProducts, cu
       ) : (
         <div>
           {PIPELINE_STAGES.map(stage=>{
-            const stageItems = items.filter(i=>i.stage===stage);
+            const stageItems = filteredItems.filter(i=>i.stage===stage);
             if (!stageItems.length) return null;
             return (
               <div key={stage} className="mb-5">
@@ -173,7 +216,7 @@ export function Pipeline({ items, setItems, campaigns, products, setProducts, cu
               </div>
             );
           })}
-          {!items.length && <p className="text-stone-400 text-sm">No content yet.</p>}
+          {!filteredItems.length && <p className="text-stone-400 text-sm">{phaseFilter !== 'all' || themeFilter !== 'all' ? 'No content matches this filter.' : 'No content yet.'}</p>}
         </div>
       )}
 
@@ -349,7 +392,25 @@ export function Calendar({ items, setItems, campaigns, products, setProducts, cu
       </div>
 
       {view==="month" && (
-        <div className="grid grid-cols-7 gap-px bg-stone-100 rounded-xl overflow-hidden border border-stone-100">
+        <>
+          {/* Phase band for this month */}
+          {(() => {
+            const monthStart = `${year}-${String(month+1).padStart(2,"0")}-01`;
+            const monthEnd   = `${year}-${String(month+1).padStart(2,"0")}-${String(new Date(year,month+1,0).getDate()).padStart(2,"0")}`;
+            const activePhases = PHASES.filter(p => p.start <= monthEnd && p.end >= monthStart);
+            if (!activePhases.length) return null;
+            return (
+              <div className="flex gap-2 mb-2 flex-wrap">
+                {activePhases.map(p => (
+                  <span key={p.id} className="text-xs px-3 py-1 rounded-full font-medium"
+                    style={{ background: p.color + "22", color: p.color }}>
+                    📅 {p.name} — {p.subtitle}
+                  </span>
+                ))}
+              </div>
+            );
+          })()}
+          <div className="grid grid-cols-7 gap-px bg-stone-100 rounded-xl overflow-hidden border border-stone-100">
           {DAY_NAMES.map(d=><div key={d} className="bg-stone-50 text-center text-xs font-medium text-stone-400 py-2">{d}</div>)}
           {cells.map((d,i)=>{
             if(!d) return <div key={i} className="bg-white opacity-0" />;
@@ -357,6 +418,7 @@ export function Calendar({ items, setItems, campaigns, products, setProducts, cu
             return <CalCell key={i} dateStr={key} dayNum={d} isToday={d===today.getDate()&&month===today.getMonth()&&year===today.getFullYear()} />;
           })}
         </div>
+        </>
       )}
 
       {view==="week" && (

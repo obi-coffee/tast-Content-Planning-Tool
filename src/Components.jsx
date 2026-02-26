@@ -4,7 +4,69 @@ import { Avatar, AssigneeSelector } from "./components/Avatar.jsx";
 
 export const PIPELINE_STAGES = ["Idea", "In Campaign", "In Production", "Ready", "Published"];
 export const CHANNEL_OPTIONS = ["Instagram", "Email", "Website", "TikTok", "LinkedIn"];
-export const TYPE_OPTIONS = ["Brewing Guide", "Product Launch", "Origin Story", "Processing Method", "Campaign", "Community", "Other"];
+
+// ── 13 content themes from the Instagram plan ─────────────────────────────
+export const TYPE_OPTIONS = [
+  "The Build",
+  "The Problem",
+  "Roaster Love",
+  "Coffee Life",
+  "Taste Story",
+  "Waitlist",
+  "Trade Show",
+  "Beta Launch",
+  "Community",
+  "Launch",
+  "Vol. 3 Tease",
+  "Vol. 3 Reveal",
+  "Vol. 3 Drop",
+];
+
+// Strategic intent: maps each theme to 70/20/10 bucket
+// culture = 70%, brand = 20%, conversion = 10%
+export const INTENT_BUCKET = {
+  "The Build":      "brand",
+  "The Problem":    "culture",
+  "Roaster Love":   "culture",
+  "Coffee Life":    "culture",
+  "Taste Story":    "culture",
+  "Waitlist":       "conversion",
+  "Trade Show":     "brand",
+  "Beta Launch":    "conversion",
+  "Community":      "culture",
+  "Launch":         "conversion",
+  "Vol. 3 Tease":   "brand",
+  "Vol. 3 Reveal":  "brand",
+  "Vol. 3 Drop":    "conversion",
+};
+
+export const INTENT_META = {
+  culture:    { label: "Culture & Community", target: 70, color: "#F05881" },
+  brand:      { label: "Product & Brand",     target: 20, color: "#a12f52" },
+  conversion: { label: "Direct Conversion",   target: 10, color: "#ef4056" },
+};
+
+// Post format options from the plan
+export const FORMAT_OPTIONS = [
+  "Single Photo",
+  "Carousel",
+  "Graphic / Text",
+  "Story",
+  "Repost / UGC",
+];
+
+// Phases from the 36-week plan
+export const PHASES = [
+  { id: "p1", name: "Phase 1 — Foundation", subtitle: "Build the Foundation + Begin the Tease", start: "2026-02-23", end: "2026-04-13", followerTarget: 6500,  color: "#fa8f9c" },
+  { id: "p2", name: "Phase 2 — Drop",       subtitle: "Partner Reveals, the Drop, and App Heat",  start: "2026-04-20", end: "2026-06-29", followerTarget: 10000, color: "#F05881" },
+  { id: "p3", name: "Phase 3 — Beta",       subtitle: "Beta & Momentum",                          start: "2026-07-06", end: "2026-09-28", followerTarget: 15500, color: "#ef4056" },
+  { id: "p4", name: "Phase 4 — Launch",     subtitle: "Public Launch",                            start: "2026-10-05", end: "2026-10-26", followerTarget: 24000, color: "#a12f52" },
+];
+
+export function getPhaseForDate(dateStr) {
+  if (!dateStr) return null;
+  return PHASES.find(p => dateStr >= p.start && dateStr <= p.end) || null;
+}
 
 export const STAGE_META = {
   "Idea":          { color: "#a8a29e", light: "#f5f5f4" },
@@ -14,14 +76,21 @@ export const STAGE_META = {
   "Published":     { color: "#a12f52", light: "#fdf0f4" },
 };
 
+// Theme tag colors — Vol. 3 gets distinct purple-ish tones to stand out
 export const TYPE_COLORS = {
-  "Brewing Guide":     "bg-[#fa8f9c]/25 text-[#a12f52]",
-  "Product Launch":    "bg-[#F05881]/20 text-[#a12f52]",
-  "Origin Story":      "bg-[#ef4056]/15 text-[#a12f52]",
-  "Processing Method": "bg-[#fa8f9c]/30 text-[#a12f52]",
-  "Campaign":          "bg-[#a12f52]/15 text-[#a12f52]",
-  "Community":         "bg-[#F05881]/10 text-[#a12f52]",
-  "Other":             "bg-stone-100 text-stone-600",
+  "The Build":      "bg-stone-100 text-stone-600",
+  "The Problem":    "bg-[#fa8f9c]/20 text-[#a12f52]",
+  "Roaster Love":   "bg-[#F05881]/15 text-[#a12f52]",
+  "Coffee Life":    "bg-[#fa8f9c]/25 text-[#a12f52]",
+  "Taste Story":    "bg-[#F05881]/20 text-[#a12f52]",
+  "Waitlist":       "bg-[#ef4056]/15 text-[#a12f52]",
+  "Trade Show":     "bg-stone-200 text-stone-600",
+  "Beta Launch":    "bg-[#ef4056]/20 text-[#ef4056]",
+  "Community":      "bg-[#F05881]/10 text-[#a12f52]",
+  "Launch":         "bg-[#a12f52]/20 text-[#a12f52]",
+  "Vol. 3 Tease":   "bg-violet-100 text-violet-700",
+  "Vol. 3 Reveal":  "bg-violet-200 text-violet-800",
+  "Vol. 3 Drop":    "bg-violet-300 text-violet-900",
 };
 
 export const defaultBrandVoice = `TONE
@@ -215,6 +284,50 @@ export function StagePicker({ value, onChange }) {
   );
 }
 
+// ── Format Picker ──────────────────────────────────────────────────────────
+const FORMAT_ICONS = {
+  "Single Photo":   "◻",
+  "Carousel":       "⧉",
+  "Graphic / Text": "T",
+  "Story":          "◎",
+  "Repost / UGC":   "↺",
+};
+
+export function FormatPicker({ value, onChange }) {
+  return (
+    <div className="mb-3">
+      <label className="block text-sm font-medium text-stone-600 mb-2">Post Format</label>
+      <div className="flex flex-wrap gap-2">
+        {FORMAT_OPTIONS.map(f => {
+          const active = value === f;
+          return (
+            <button key={f} type="button" onClick={() => onChange(f)}
+              className="text-xs px-3 py-1.5 rounded-full border font-medium transition-all flex items-center gap-1.5"
+              style={active
+                ? { background: "#F05881", color: "white", borderColor: "#F05881" }
+                : { background: "white", color: "#78716c", borderColor: "#e7e5e4" }}>
+              <span>{FORMAT_ICONS[f]}</span>
+              {f}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Phase Tag (read-only display) ──────────────────────────────────────────
+export function PhaseTag({ dateStr, className = "" }) {
+  const phase = getPhaseForDate(dateStr);
+  if (!phase) return null;
+  return (
+    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${className}`}
+      style={{ background: phase.color + "22", color: phase.color }}>
+      {phase.name}
+    </span>
+  );
+}
+
 export function CampaignProgress({ items }) {
   const total = items.length;
   if (!total) return <p className="text-xs text-stone-300 mb-4">No content yet.</p>;
@@ -250,13 +363,12 @@ export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, loc
     const base = {
       title:"", type:TYPE_OPTIONS[0],
       channels: { primary: "Instagram", secondary: [] },
+      format: FORMAT_OPTIONS[0],
       stage:"Idea", campaignId:"", date:"", notes:"", product:"",
       draftCopy:"", driveUrl:"", driveUrls:[], owner:"", assigneeId:"", seq:0,
     };
     if (!initial) return base;
-    // Normalize legacy channels array → new shape
     const channels = normalizeChannels(initial.channels);
-    // Normalize driveUrls — if only driveUrl exists, seed driveUrls from it
     const driveUrls = initial.driveUrls?.length
       ? initial.driveUrls
       : initial.driveUrl ? [initial.driveUrl] : [];
@@ -299,11 +411,26 @@ export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, loc
       <Inp label="Title" value={form.title} onChange={e=>f("title",e.target.value)} placeholder="Content title" />
       <ProductSelector value={form.product} onChange={v=>f("product",v)} products={products} onManage={()=>setShowProductManager(true)} />
       {showProductManager && <ProductManager products={products} setProducts={setProducts} onClose={()=>setShowProductManager(false)} />}
-      <Sel label="Content type" options={TYPE_OPTIONS} value={form.type} onChange={e=>f("type",e.target.value)} />
+      <Sel label="Content type / theme" options={TYPE_OPTIONS} value={form.type} onChange={e=>f("type",e.target.value)} />
 
-      {/* ── Primary + Secondary channels ── */}
+      {/* Intent bucket hint */}
+      {form.type && INTENT_BUCKET[form.type] && (() => {
+        const bucket = INTENT_BUCKET[form.type];
+        const meta = INTENT_META[bucket];
+        return (
+          <div className="mb-3 -mt-1 flex items-center gap-1.5">
+            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: meta.color + "18", color: meta.color }}>
+              {meta.label}
+            </span>
+            <span className="text-xs text-stone-300">· {bucket === "culture" ? "70%" : bucket === "brand" ? "20%" : "10%"} bucket</span>
+          </div>
+        );
+      })()}
+
+      {/* ── Post Format ── */}
+      <FormatPicker value={form.format||FORMAT_OPTIONS[0]} onChange={v=>f("format",v)} />
+
       <ChannelPicker selected={form.channels} onChange={v=>f("channels",v)} />
-
       <StagePicker value={form.stage} onChange={v=>f("stage",v)} />
       {!lockCampaignId && campaigns.length>0 && (
         <div className="mb-3">
@@ -322,6 +449,17 @@ export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, loc
         </div>
       )}
       <Inp label="Scheduled date" type="date" value={form.date} onChange={e=>f("date",e.target.value)} />
+      {/* Phase indicator */}
+      {form.date && (() => {
+        const phase = getPhaseForDate(form.date);
+        return phase ? (
+          <div className="mb-3 -mt-1">
+            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: phase.color + "22", color: phase.color }}>
+              📅 {phase.name}
+            </span>
+          </div>
+        ) : null;
+      })()}
 
       {/* ── Assignee ── */}
       <div className="mb-3">
