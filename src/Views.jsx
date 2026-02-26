@@ -75,7 +75,7 @@ function ContentCard({ item, campaigns, onClick, compact, currentMember }) {
 }
 
 // ── PIPELINE ──────────────────────────────────────────────────────────────
-export function Pipeline({ items, setItems, campaigns, products, setProducts, currentMember }) {
+export function Pipeline({ items, setItems, addItem, updateItem, deleteItem, campaigns, products, setProducts, currentMember }) {
   const isMobile = useIsMobile();
   const [view, setView] = useState("kanban");
   const [showForm, setShowForm] = useState(false);
@@ -86,11 +86,22 @@ export function Pipeline({ items, setItems, campaigns, products, setProducts, cu
   const [themeFilter, setThemeFilter] = useState("all");
 
   const openEdit = item => { setEditItem(item); setShowForm(true); };
-  const saveItem = form => {
-    if (editItem?.id) setItems(prev=>prev.map(i=>i.id===editItem.id?{...form,id:editItem.id}:i));
-    else setItems(prev=>[{...form,id:Date.now()},...prev]);
+  const saveItem = async (form) => {
+    if (editItem?.id) {
+      const { id, created_at, ...rest } = form;
+      await updateItem(editItem.id, rest).catch(console.error);
+    } else {
+      const { id, ...rest } = form;
+      await addItem(rest).catch(console.error);
+    }
   };
-  const moveStage = (item,stage) => setItems(prev=>prev.map(i=>i.id===item.id?{...i,stage}:i));
+  const deleteItemHandler = async (item) => {
+    await deleteItem(item.id).catch(console.error);
+  };
+  const moveStage = (item, stage) => {
+    const { id, created_at, ...rest } = item;
+    updateItem(id, { ...rest, stage }).catch(console.error);
+  };
 
   const filteredItems = items.filter(item => {
     if (phaseFilter !== "all") {
@@ -223,7 +234,7 @@ export function Pipeline({ items, setItems, campaigns, products, setProducts, cu
       {showForm && (
         <Modal title={editItem?.id?"Edit Content":"New Content"} onClose={()=>setShowForm(false)}>
           <ContentForm initial={editItem} campaigns={campaigns} onSave={saveItem}
-            onDelete={editItem?.id?()=>setItems(prev=>prev.filter(i=>i.id!==editItem.id)):null}
+            onDelete={editItem?.id ? () => deleteItemHandler(editItem) : null}
             onClose={()=>setShowForm(false)} products={products} setProducts={setProducts}
             currentMember={currentMember} />
         </Modal>
@@ -233,7 +244,7 @@ export function Pipeline({ items, setItems, campaigns, products, setProducts, cu
 }
 
 // ── CALENDAR ──────────────────────────────────────────────────────────────
-export function Calendar({ items, setItems, campaigns, products, setProducts, currentMember }) {
+export function Calendar({ items, setItems, addItem, updateItem, deleteItem, campaigns, products, setProducts, currentMember }) {
   const isMobile = useIsMobile();
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
@@ -243,11 +254,19 @@ export function Calendar({ items, setItems, campaigns, products, setProducts, cu
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState(null);
 
-  const openNew = (date="") => { setEditItem({date,stage:"Idea",channels:["Instagram"],type:TYPE_OPTIONS[0]}); setShowForm(true); };
+  const openNew = (date="") => { setEditItem({date,stage:"Idea",channels:{primary:"Instagram",secondary:[]},type:TYPE_OPTIONS[0]}); setShowForm(true); };
   const openEdit = item => { setEditItem(item); setShowForm(true); };
-  const saveItem = form => {
-    if (editItem?.id) setItems(prev=>prev.map(i=>i.id===editItem.id?{...form,id:editItem.id}:i));
-    else setItems(prev=>[{...form,id:Date.now()},...prev]);
+  const saveItem = async (form) => {
+    if (editItem?.id) {
+      const { id, created_at, ...rest } = form;
+      await updateItem(editItem.id, rest).catch(console.error);
+    } else {
+      const { id, ...rest } = form;
+      await addItem(rest).catch(console.error);
+    }
+  };
+  const deleteItemHandler = async (item) => {
+    await deleteItem(item.id).catch(console.error);
   };
 
   const dateKey = (y,m,d) => `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
@@ -358,7 +377,7 @@ export function Calendar({ items, setItems, campaigns, products, setProducts, cu
         {showForm && (
           <Modal title={editItem?.id?"Edit Content":"New Content"} onClose={()=>setShowForm(false)}>
             <ContentForm initial={editItem} campaigns={campaigns} onSave={saveItem}
-              onDelete={editItem?.id?()=>setItems(prev=>prev.filter(i=>i.id!==editItem.id)):null}
+              onDelete={editItem?.id ? () => deleteItemHandler(editItem) : null}
               onClose={()=>setShowForm(false)} products={products} setProducts={setProducts}
               currentMember={currentMember} />
           </Modal>
@@ -472,7 +491,7 @@ export function Calendar({ items, setItems, campaigns, products, setProducts, cu
       {showForm && (
         <Modal title={editItem?.id?"Edit Content":"New Content"} onClose={()=>setShowForm(false)}>
           <ContentForm initial={editItem} campaigns={campaigns} onSave={saveItem}
-            onDelete={editItem?.id?()=>setItems(prev=>prev.filter(i=>i.id!==editItem.id)):null}
+            onDelete={editItem?.id ? () => deleteItemHandler(editItem) : null}
             onClose={()=>setShowForm(false)} products={products} setProducts={setProducts}
             currentMember={currentMember} />
         </Modal>

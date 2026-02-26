@@ -170,7 +170,7 @@ function DetailPanel({ item, campaigns, onClose, onEdit }) {
 }
 
 // ── Main Grid View ─────────────────────────────────────────────────────────
-export function InstagramGrid({ items, setItems, campaigns, products, setProducts, currentMember }) {
+export function InstagramGrid({ items, setItems, addItem, updateItem, deleteItem, campaigns, products, setProducts, currentMember }) {
   const [selected, setSelected] = useState(null);
   const [editItem, setEditItem] = useState(null);
   const [showEditForm, setShowEditForm] = useState(false);
@@ -213,9 +213,14 @@ export function InstagramGrid({ items, setItems, campaigns, products, setProduct
     return r;
   }, [gridItems]);
 
-  const saveItem = form => {
-    if (editItem?.id) setItems(prev => prev.map(i => i.id === editItem.id ? { ...form, id: editItem.id } : i));
-    else setItems(prev => [{ ...form, id: Date.now() }, ...prev]);
+  const saveItem = async (form) => {
+    if (editItem?.id) {
+      const { id, created_at, ...rest } = form;
+      await updateItem(editItem.id, rest).catch(console.error);
+    } else {
+      const { id, ...rest } = form;
+      await addItem(rest).catch(console.error);
+    }
   };
 
   const cellSize = gridSize === "lg" ? 180 : gridSize === "sm" ? 80 : 130;
@@ -370,7 +375,7 @@ export function InstagramGrid({ items, setItems, campaigns, products, setProduct
             initial={editItem}
             campaigns={campaigns}
             onSave={saveItem}
-            onDelete={editItem?.id ? () => setItems(prev => prev.filter(i => i.id !== editItem.id)) : null}
+            onDelete={editItem?.id ? () => deleteItem(editItem.id).catch(console.error) : null}
             onClose={() => { setShowEditForm(false); setEditItem(null); }}
             products={products}
             setProducts={setProducts}

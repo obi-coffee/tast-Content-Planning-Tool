@@ -3,7 +3,7 @@ import { PIPELINE_STAGES, TYPE_OPTIONS, STAGE_META, driveThumb, Tag, Modal, Inp,
 import CommentsPanel from "./components/CommentsPanel.jsx";
 import { Avatar } from "./components/Avatar.jsx";
 
-export function Campaigns({ campaigns, setCampaigns, allItems, setAllItems, products=[], setProducts=()=>{}, currentMember }) {
+export function Campaigns({ campaigns, setCampaigns, addCampaign, updateCampaign, deleteCampaign, allItems, setAllItems, addItem, updateItem, deleteItem, products=[], setProducts=()=>{}, currentMember }) {
   const [active, setActive] = useState(null);
   const [activeTab, setActiveTab] = useState("content");
   const [showCampForm, setShowCampForm] = useState(false);
@@ -17,24 +17,29 @@ export function Campaigns({ campaigns, setCampaigns, allItems, setAllItems, prod
   const [campForm, setCampForm] = useState(emptyCamp);
   const cf = (k,v) => setCampForm(p=>({...p,[k]:v}));
 
-  const saveCamp = () => {
+  const saveCamp = async () => {
     if (!campForm.name.trim()) return;
     if (active) {
-      const updated = {...campForm,id:active.id};
-      setCampaigns(prev=>prev.map(c=>c.id===active.id?updated:c));
-      setActive(updated);
+      const { id, created_at, ...rest } = campForm;
+      await updateCampaign(active.id, rest).catch(console.error);
     } else {
-      setCampaigns(prev=>[{...campForm,id:Date.now()},...prev]);
+      const { id, ...rest } = campForm;
+      await addCampaign(rest).catch(console.error);
     }
     setShowCampForm(false);
   };
 
-  const saveContent = form => {
-    const linked = {...form,campaignId:String(active.id)};
-    if (editContent?.id) setAllItems(prev=>prev.map(i=>i.id===editContent.id?{...linked,id:editContent.id}:i));
-    else setAllItems(prev=>[{...linked,id:Date.now()},...prev]);
+  const saveContent = async (form) => {
+    const linked = {...form, campaignId: String(active.id)};
+    if (editContent?.id) {
+      const { id, created_at, ...rest } = linked;
+      await updateItem(editContent.id, rest).catch(console.error);
+    } else {
+      const { id, ...rest } = linked;
+      await addItem(rest).catch(console.error);
+    }
   };
-  const deleteContent = () => { if(editContent?.id) setAllItems(prev=>prev.filter(i=>i.id!==editContent.id)); };
+  const deleteContent = async () => { if(editContent?.id) await deleteItem(editContent.id).catch(console.error); };
 
   const reorder = (arr,from,to) => { const a=[...arr]; const [m]=a.splice(from,1); a.splice(to,0,m); return a; };
   const statusCls = s => s==="Live"?"bg-[#a12f52]/15 text-[#a12f52]":s==="Complete"?"bg-stone-200 text-stone-600":"bg-[#fa8f9c]/20 text-[#a12f52]";

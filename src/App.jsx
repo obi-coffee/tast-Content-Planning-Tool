@@ -38,22 +38,58 @@ export default function App() {
 
   const setItems = async (updater) => {
     const next = typeof updater === "function" ? updater(items) : updater;
-    const added   = next.filter(n => !items.find(o => o.id === n.id));
-    const updated = next.filter(n =>  items.find(o => o.id === n.id && JSON.stringify(o) !== JSON.stringify(n)));
-    const removed = items.filter(o => !next.find(n => n.id === o.id));
-    for (const item of added)   { const { id, ...rest } = item; await addItem(rest).catch(console.error); }
-    for (const item of updated) { const { id, ...rest } = item; await updateItem(id, rest).catch(console.error); }
-    for (const item of removed) { await deleteItem(item.id).catch(console.error); }
+
+    // Detect operation by comparing lengths and ids
+    if (next.length > items.length) {
+      // ADD — find the new item (no matching id in current items)
+      const newItem = next.find(n => !items.some(o => o.id === n.id));
+      if (newItem) {
+        const { id, ...rest } = newItem;
+        try { await addItem(rest); } catch (e) { console.error("addItem failed:", e); }
+      }
+    } else if (next.length < items.length) {
+      // DELETE — find the removed item
+      const removed = items.find(o => !next.some(n => n.id === o.id));
+      if (removed) {
+        try { await deleteItem(removed.id); } catch (e) { console.error("deleteItem failed:", e); }
+      }
+    } else {
+      // UPDATE — find the changed item
+      const changed = next.find(n => {
+        const orig = items.find(o => o.id === n.id);
+        return orig && JSON.stringify(orig) !== JSON.stringify(n);
+      });
+      if (changed) {
+        const { id, created_at, ...rest } = changed;
+        try { await updateItem(id, rest); } catch (e) { console.error("updateItem failed:", e); }
+      }
+    }
   };
 
   const setCampaigns = async (updater) => {
     const next = typeof updater === "function" ? updater(campaigns) : updater;
-    const added   = next.filter(n => !campaigns.find(o => o.id === n.id));
-    const updated = next.filter(n =>  campaigns.find(o => o.id === n.id && JSON.stringify(o) !== JSON.stringify(n)));
-    const removed = campaigns.filter(o => !next.find(n => n.id === o.id));
-    for (const c of added)   { const { id, ...rest } = c; await addCampaign(rest).catch(console.error); }
-    for (const c of updated) { const { id, ...rest } = c; await updateCampaign(id, rest).catch(console.error); }
-    for (const c of removed) { await deleteCampaign(c.id).catch(console.error); }
+
+    if (next.length > campaigns.length) {
+      const newC = next.find(n => !campaigns.some(o => o.id === n.id));
+      if (newC) {
+        const { id, ...rest } = newC;
+        try { await addCampaign(rest); } catch (e) { console.error("addCampaign failed:", e); }
+      }
+    } else if (next.length < campaigns.length) {
+      const removed = campaigns.find(o => !next.some(n => n.id === o.id));
+      if (removed) {
+        try { await deleteCampaign(removed.id); } catch (e) { console.error("deleteCampaign failed:", e); }
+      }
+    } else {
+      const changed = next.find(n => {
+        const orig = campaigns.find(o => o.id === n.id);
+        return orig && JSON.stringify(orig) !== JSON.stringify(n);
+      });
+      if (changed) {
+        const { id, created_at, ...rest } = changed;
+        try { await updateCampaign(id, rest); } catch (e) { console.error("updateCampaign failed:", e); }
+      }
+    }
   };
 
   const loading = itemsLoading || campaignsLoading;
@@ -111,10 +147,10 @@ export default function App() {
             </div>
           ) : (
             <>
-              {tab === 0 && <Pipeline items={items} setItems={setItems} campaigns={campaigns} products={products} setProducts={setProducts} currentMember={member} />}
-              {tab === 1 && <Calendar items={items} setItems={setItems} campaigns={campaigns} products={products} setProducts={setProducts} currentMember={member} />}
-              {tab === 2 && <Campaigns campaigns={campaigns} setCampaigns={setCampaigns} allItems={items} setAllItems={setItems} products={products} setProducts={setProducts} currentMember={member} />}
-              {tab === 3 && <InstagramGrid items={items} setItems={setItems} campaigns={campaigns} products={products} setProducts={setProducts} currentMember={member} />}
+              {tab === 0 && <Pipeline items={items} setItems={setItems} addItem={addItem} updateItem={updateItem} deleteItem={deleteItem} campaigns={campaigns} products={products} setProducts={setProducts} currentMember={member} />}
+              {tab === 1 && <Calendar items={items} setItems={setItems} addItem={addItem} updateItem={updateItem} deleteItem={deleteItem} campaigns={campaigns} products={products} setProducts={setProducts} currentMember={member} />}
+              {tab === 2 && <Campaigns campaigns={campaigns} setCampaigns={setCampaigns} addCampaign={addCampaign} updateCampaign={updateCampaign} deleteCampaign={deleteCampaign} allItems={items} setAllItems={setItems} addItem={addItem} updateItem={updateItem} deleteItem={deleteItem} products={products} setProducts={setProducts} currentMember={member} />}
+              {tab === 3 && <InstagramGrid items={items} setItems={setItems} addItem={addItem} updateItem={updateItem} deleteItem={deleteItem} campaigns={campaigns} products={products} setProducts={setProducts} currentMember={member} />}
               {tab === 4 && <Analytics items={items} campaigns={campaigns} />}
               {tab === 5 && <BrandVoice voice={brandVoice} setVoice={setBrandVoice} />}
               {tab === 6 && <Captions brandVoice={brandVoice} />}
