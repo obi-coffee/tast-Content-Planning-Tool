@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ProductSelector, ProductManager } from "./Products.jsx";
+import { Avatar, AssigneeSelector } from "./components/Avatar.jsx";
 
 export const PIPELINE_STAGES = ["Idea", "In Campaign", "In Production", "Ready", "Published"];
 export const CHANNEL_OPTIONS = ["Instagram", "Email", "Website", "TikTok", "LinkedIn"];
@@ -165,11 +166,11 @@ export function CampaignProgress({ items }) {
   );
 }
 
-export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, lockCampaignId, products=[], setProducts=()=>{} }) {
+export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, lockCampaignId, products=[], setProducts=()=>{}, onOpenComments, currentMember }) {
   const [form, setForm] = useState({
     title:"", type:TYPE_OPTIONS[0], channels:["Instagram"],
     stage:"Idea", campaignId:"", date:"", notes:"", product:"",
-    draftCopy:"", driveUrl:"", owner:"", seq:0,
+    draftCopy:"", driveUrl:"", owner:"", assigneeId:"", seq:0,
     ...initial
   });
   const [showProductManager, setShowProductManager] = useState(false);
@@ -202,7 +203,12 @@ export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, loc
         </div>
       )}
       <Inp label="Scheduled date" type="date" value={form.date} onChange={e=>f("date",e.target.value)} />
-      <Inp label="Owner" value={form.owner} onChange={e=>f("owner",e.target.value)} placeholder="e.g. Obi" />
+
+      {/* ── Assignee ── */}
+      <div className="mb-3">
+        <AssigneeSelector value={form.assigneeId||null} onChange={v=>f("assigneeId",v)} label="Assign to" />
+      </div>
+
       <Txt label="Draft copy / caption" rows={3} value={form.draftCopy} onChange={e=>f("draftCopy",e.target.value)} placeholder="Paste your draft caption or copy here..." />
       <Txt label="Notes" value={form.notes} onChange={e=>f("notes",e.target.value)} placeholder="Production notes, links, angles..." />
       <div className="mb-3">
@@ -215,6 +221,13 @@ export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, loc
       </div>
       <div className="flex gap-2 mt-4">
         <button onClick={save} style={{background:"#F05881"}} className="flex-1 hover:opacity-90 text-white py-2 rounded-lg font-medium text-sm">Save</button>
+        {initial?.id && onOpenComments && (
+          <button onClick={()=>{onClose();onOpenComments(initial.id);}}
+            className="px-4 py-2 text-sm font-medium border border-stone-200 rounded-lg text-stone-500 hover:border-[#F05881] hover:text-[#F05881] transition-colors flex items-center gap-1.5">
+            <span>💬</span>
+            <span>Comments</span>
+          </button>
+        )}
         {onDelete && <button onClick={()=>{onDelete();onClose();}} className="px-4 py-2 text-sm text-red-400 hover:text-red-600">Delete</button>}
       </div>
     </>

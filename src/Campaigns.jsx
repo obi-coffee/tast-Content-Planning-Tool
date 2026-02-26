@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { PIPELINE_STAGES, TYPE_OPTIONS, STAGE_META, driveThumb, Tag, Modal, Inp, Sel, Txt, ChannelPicker, CampaignProgress, ContentForm } from "./Components.jsx";
+import CommentsPanel from "./components/CommentsPanel.jsx";
+import { Avatar } from "./components/Avatar.jsx";
 
-export function Campaigns({ campaigns, setCampaigns, allItems, setAllItems, products=[], setProducts=()=>{} }) {
+export function Campaigns({ campaigns, setCampaigns, allItems, setAllItems, products=[], setProducts=()=>{}, currentMember }) {
   const [active, setActive] = useState(null);
   const [activeTab, setActiveTab] = useState("content");
   const [showCampForm, setShowCampForm] = useState(false);
@@ -9,6 +11,7 @@ export function Campaigns({ campaigns, setCampaigns, allItems, setAllItems, prod
   const [editContent, setEditContent] = useState(null);
   const [dragIdx, setDragIdx] = useState(null);
   const [dragOverIdx, setDragOverIdx] = useState(null);
+  const [commentItemId, setCommentItemId] = useState(null);
 
   const emptyCamp = {name:"",dropDate:"",goal:"",pillars:"",channels:[],bigThink:"",status:"Planning",keyMessage:"",tone:""};
   const [campForm, setCampForm] = useState(emptyCamp);
@@ -115,7 +118,9 @@ export function Campaigns({ campaigns, setCampaigns, allItems, setAllItems, prod
                             </div>
                             {item.date && <p className="text-xs text-stone-300 mt-0.5">{item.date}</p>}
                           </div>
+                          {item.assigneeId && <Avatar memberId={item.assigneeId} size={22} />}
                           <button onClick={()=>{setEditContent(item);setShowContentForm(true);}} className="text-xs text-stone-300 hover:text-stone-500 px-2">Edit</button>
+                          <button onClick={()=>setCommentItemId(item.id)} className="text-xs text-stone-300 hover:text-[#F05881] px-1 transition-colors" title="Comments">💬</button>
                         </div>
                       </div>
                     );
@@ -155,8 +160,16 @@ export function Campaigns({ campaigns, setCampaigns, allItems, setAllItems, prod
             <ContentForm initial={editContent} campaigns={campaigns} onSave={saveContent}
               onDelete={editContent?.id?deleteContent:null}
               onClose={()=>{setShowContentForm(false);setEditContent(null);}}
-              lockCampaignId={true} products={products} setProducts={setProducts} />
+              lockCampaignId={true} products={products} setProducts={setProducts}
+              currentMember={currentMember} />
           </Modal>
+        )}
+        {commentItemId && (
+          <CommentsPanel
+            itemId={commentItemId}
+            currentMember={currentMember}
+            onClose={()=>setCommentItemId(null)}
+          />
         )}
       </div>
     );

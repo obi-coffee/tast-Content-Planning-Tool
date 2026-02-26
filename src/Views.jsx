@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { PIPELINE_STAGES, CHANNEL_OPTIONS, TYPE_OPTIONS, STAGE_META, TYPE_COLORS, driveThumb, Tag, Modal, Inp, Sel, Txt, ChannelPicker, CampaignProgress, ContentForm } from "./Components.jsx";
+import { Avatar } from "./components/Avatar.jsx";
+import CommentsPanel from "./components/CommentsPanel.jsx";
 
 const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const DAY_NAMES = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
@@ -26,33 +28,54 @@ function getItemColor(item, products) {
 }
 
 // ── Content Card ───────────────────────────────────────────────────────────
-function ContentCard({ item, campaigns, onClick, compact }) {
+function ContentCard({ item, campaigns, onClick, compact, currentMember }) {
+  const [showComments, setShowComments] = useState(false);
   const campaign = campaigns.find(c=>String(c.id)===String(item.campaignId));
   const channels = Array.isArray(item.channels)?item.channels:item.channel?[item.channel]:[];
   const thumb = driveThumb(item.driveUrl);
   return (
-    <div onClick={onClick} className="bg-white rounded-xl border border-stone-100 shadow-sm cursor-pointer hover:border-[#fa8f9c] transition-colors mb-2 overflow-hidden">
-      {thumb && !compact && <img src={thumb} alt="" className="w-full object-cover" style={{height:100}} onError={e=>e.target.style.display="none"} />}
-      <div className={compact?"p-2":"p-3"}>
-        <span className={`font-medium text-stone-800 ${compact?"text-xs":"text-sm"}`}>{item.title}</span>
-        {!compact && item.product && <p className="text-xs text-stone-400 mt-0.5">{item.product}</p>}
-        {!compact && campaign && <div className="mt-1.5"><span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{background:"#fff0f4",color:"#F05881"}}>↗ {campaign.name}</span></div>}
-        {!compact && campaign?.keyMessage && <p className="text-xs text-stone-400 mt-1 line-clamp-1 italic">"{campaign.keyMessage}"</p>}
-        {!compact && item.draftCopy && <p className="text-xs text-stone-500 mt-1 line-clamp-2 border-l-2 pl-2 border-stone-200">{item.draftCopy}</p>}
-        <div className={`flex flex-wrap gap-1 ${compact?"mt-1":"mt-2"}`}>
-          {!compact && <Tag label={item.type} colorClass={TYPE_COLORS[item.type]||TYPE_COLORS["Other"]} />}
-          {channels.slice(0, compact?1:99).map(ch=><Tag key={ch} label={ch} colorClass="bg-stone-100 text-stone-500" />)}
-          {compact && channels.length>1 && <span className="text-xs text-stone-300">+{channels.length-1}</span>}
+    <>
+      <div onClick={onClick} className="bg-white rounded-xl border border-stone-100 shadow-sm cursor-pointer hover:border-[#fa8f9c] transition-colors mb-2 overflow-hidden">
+        {thumb && !compact && <img src={thumb} alt="" className="w-full object-cover" style={{height:100}} onError={e=>e.target.style.display="none"} />}
+        <div className={compact?"p-2":"p-3"}>
+          <span className={`font-medium text-stone-800 ${compact?"text-xs":"text-sm"}`}>{item.title}</span>
+          {!compact && item.product && <p className="text-xs text-stone-400 mt-0.5">{item.product}</p>}
+          {!compact && campaign && <div className="mt-1.5"><span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{background:"#fff0f4",color:"#F05881"}}>↗ {campaign.name}</span></div>}
+          {!compact && campaign?.keyMessage && <p className="text-xs text-stone-400 mt-1 line-clamp-1 italic">"{campaign.keyMessage}"</p>}
+          {!compact && item.draftCopy && <p className="text-xs text-stone-500 mt-1 line-clamp-2 border-l-2 pl-2 border-stone-200">{item.draftCopy}</p>}
+          <div className={`flex flex-wrap gap-1 ${compact?"mt-1":"mt-2"}`}>
+            {!compact && <Tag label={item.type} colorClass={TYPE_COLORS[item.type]||TYPE_COLORS["Other"]} />}
+            {channels.slice(0, compact?1:99).map(ch=><Tag key={ch} label={ch} colorClass="bg-stone-100 text-stone-500" />)}
+            {compact && channels.length>1 && <span className="text-xs text-stone-300">+{channels.length-1}</span>}
+          </div>
+          {item.date && <p className="text-xs text-stone-300 mt-1">{item.date}</p>}
+          {!compact && (
+            <div className="flex items-center justify-between mt-2">
+              {item.owner && <p className="text-xs text-stone-300">Owner: {item.owner}</p>}
+              <button
+                onClick={e=>{e.stopPropagation();setShowComments(true);}}
+                className="text-xs text-stone-300 hover:text-[#F05881] transition-colors ml-auto flex items-center gap-1"
+                title="Comments"
+              >
+                💬 Comments
+              </button>
+            </div>
+          )}
         </div>
-        {item.date && <p className="text-xs text-stone-300 mt-1">{item.date}</p>}
-        {!compact && item.owner && <p className="text-xs text-stone-300 mt-0.5">Owner: {item.owner}</p>}
       </div>
-    </div>
+      {showComments && (
+        <CommentsPanel
+          itemId={item.id}
+          currentMember={currentMember}
+          onClose={()=>setShowComments(false)}
+        />
+      )}
+    </>
   );
 }
 
 // ── PIPELINE ──────────────────────────────────────────────────────────────
-export function Pipeline({ items, setItems, campaigns, products, setProducts }) {
+export function Pipeline({ items, setItems, campaigns, products, setProducts, currentMember }) {
   const isMobile = useIsMobile();
   const [view, setView] = useState("kanban");
   const [showForm, setShowForm] = useState(false);
@@ -104,7 +127,7 @@ export function Pipeline({ items, setItems, campaigns, products, setProducts }) 
                 </div>
                 {stageItems.map(item=>(
                   <div key={item.id} draggable onDragStart={()=>setDragItem(item)} style={{opacity:dragItem?.id===item.id?0.5:1}}>
-                    <ContentCard item={item} campaigns={campaigns} onClick={()=>openEdit(item)} compact={isMobile} />
+                    <ContentCard item={item} campaigns={campaigns} onClick={()=>openEdit(item)} compact={isMobile} currentMember={currentMember} />
                   </div>
                 ))}
                 {!stageItems.length && <p className="text-xs text-stone-300 text-center mt-4">Drop here</p>}
@@ -158,7 +181,8 @@ export function Pipeline({ items, setItems, campaigns, products, setProducts }) 
         <Modal title={editItem?.id?"Edit Content":"New Content"} onClose={()=>setShowForm(false)}>
           <ContentForm initial={editItem} campaigns={campaigns} onSave={saveItem}
             onDelete={editItem?.id?()=>setItems(prev=>prev.filter(i=>i.id!==editItem.id)):null}
-            onClose={()=>setShowForm(false)} products={products} setProducts={setProducts} />
+            onClose={()=>setShowForm(false)} products={products} setProducts={setProducts}
+            currentMember={currentMember} />
         </Modal>
       )}
     </div>
@@ -166,7 +190,7 @@ export function Pipeline({ items, setItems, campaigns, products, setProducts }) 
 }
 
 // ── CALENDAR ──────────────────────────────────────────────────────────────
-export function Calendar({ items, setItems, campaigns, products, setProducts }) {
+export function Calendar({ items, setItems, campaigns, products, setProducts, currentMember }) {
   const isMobile = useIsMobile();
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
@@ -292,7 +316,8 @@ export function Calendar({ items, setItems, campaigns, products, setProducts }) 
           <Modal title={editItem?.id?"Edit Content":"New Content"} onClose={()=>setShowForm(false)}>
             <ContentForm initial={editItem} campaigns={campaigns} onSave={saveItem}
               onDelete={editItem?.id?()=>setItems(prev=>prev.filter(i=>i.id!==editItem.id)):null}
-              onClose={()=>setShowForm(false)} products={products} setProducts={setProducts} />
+              onClose={()=>setShowForm(false)} products={products} setProducts={setProducts}
+              currentMember={currentMember} />
           </Modal>
         )}
       </div>
@@ -386,7 +411,8 @@ export function Calendar({ items, setItems, campaigns, products, setProducts }) 
         <Modal title={editItem?.id?"Edit Content":"New Content"} onClose={()=>setShowForm(false)}>
           <ContentForm initial={editItem} campaigns={campaigns} onSave={saveItem}
             onDelete={editItem?.id?()=>setItems(prev=>prev.filter(i=>i.id!==editItem.id)):null}
-            onClose={()=>setShowForm(false)} products={products} setProducts={setProducts} />
+            onClose={()=>setShowForm(false)} products={products} setProducts={setProducts}
+            currentMember={currentMember} />
         </Modal>
       )}
     </div>
