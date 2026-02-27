@@ -2,23 +2,43 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 
 // ── camelCase ↔ snake_case mappers ────────────────────────────────────────
+// channels in DB is a flat array e.g. ["Instagram","Email"]
+// app uses object shape {primary:"Instagram", secondary:["Email"]}
+function channelsToDb(ch) {
+  if (!ch) return []
+  if (Array.isArray(ch)) return ch
+  const arr = []
+  if (ch.primary) arr.push(ch.primary)
+  if (Array.isArray(ch.secondary)) arr.push(...ch.secondary)
+  return arr
+}
+
+function channelsFromDb(raw) {
+  if (!raw) return { primary: '', secondary: [] }
+  if (Array.isArray(raw)) return { primary: raw[0] || '', secondary: raw.slice(1) }
+  if (typeof raw === 'object' && 'primary' in raw) return raw
+  return { primary: '', secondary: [] }
+}
+
 function toDb(item) {
   if (!item) return item
-  const { draftCopy, driveUrl, driveUrls, campaignId, assigneeId, ...rest } = item
+  const { draftCopy, driveUrl, driveUrls, campaignId, assigneeId, channels, ...rest } = item
   const out = { ...rest }
   if (draftCopy  !== undefined) out.draft_copy  = draftCopy  || null
   if (driveUrl   !== undefined) out.drive_url   = driveUrl   || null
   if (driveUrls  !== undefined) out.drive_urls  = driveUrls
-  if (campaignId !== undefined) out.campaign_id = campaignId || null  // UUID: never send ""
-  if (assigneeId !== undefined) out.assignee_id = assigneeId || null  // UUID: never send ""
+  if (campaignId !== undefined) out.campaign_id = campaignId || null
+  if (assigneeId !== undefined) out.assignee_id = assigneeId || null
+  if (channels   !== undefined) out.channels    = channelsToDb(channels)
   return out
 }
 
 function fromDb(row) {
   if (!row) return row
-  const { draft_copy, drive_url, drive_urls, campaign_id, assignee_id, ...rest } = row
+  const { draft_copy, drive_url, drive_urls, campaign_id, assignee_id, channels, ...rest } = row
   return {
     ...rest,
+    channels:   channelsFromDb(channels),
     draftCopy:  draft_copy  ?? '',
     driveUrl:   drive_url   ?? '',
     driveUrls:  Array.isArray(drive_urls) ? drive_urls : [],
