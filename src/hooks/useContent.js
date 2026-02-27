@@ -6,11 +6,11 @@ function toDb(item) {
   if (!item) return item
   const { draftCopy, driveUrl, driveUrls, campaignId, assigneeId, ...rest } = item
   const out = { ...rest }
-  if (draftCopy  !== undefined) out.draft_copy  = draftCopy
-  if (driveUrl   !== undefined) out.drive_url   = driveUrl
+  if (draftCopy  !== undefined) out.draft_copy  = draftCopy  || null
+  if (driveUrl   !== undefined) out.drive_url   = driveUrl   || null
   if (driveUrls  !== undefined) out.drive_urls  = driveUrls
-  if (campaignId !== undefined) out.campaign_id = campaignId
-  if (assigneeId !== undefined) out.assignee_id = assigneeId
+  if (campaignId !== undefined) out.campaign_id = campaignId || null  // UUID: never send ""
+  if (assigneeId !== undefined) out.assignee_id = assigneeId || null  // UUID: never send ""
   return out
 }
 
