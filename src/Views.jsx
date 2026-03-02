@@ -524,49 +524,38 @@ export function BrandVoice({ voice, setVoice }) {
 
 // ── CAPTIONS ──────────────────────────────────────────────────────────────
 export function Captions({ brandVoice }) {
+  const EDGE_FN_URL = "https://yfixjafskptbhjsbvxwf.supabase.co/functions/v1/generate-caption";
+
   const [channel, setChannel] = useState("Instagram");
   const [context, setContext] = useState("");
   const [product, setProduct] = useState("");
+  const [theme, setTheme] = useState("(no theme)");
   const [tone, setTone] = useState("On-brand default");
   const [captions, setCaptions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
 
   const generate = async () => {
     if (!context.trim()) return;
-    setLoading(true); setCaptions([]);
+    setLoading(true); setCaptions([]); setErrorMsg(null);
     try {
-      const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      const resp = await fetch(EDGE_FN_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
-          system: `You are the voice of tāst, a specialty coffee discovery brand. Your tone is warm, confident, and culturally fluent — never gatekeeping, always inviting. You write captions that feel like they come from a real person who loves coffee, not a marketing department.\n\nBRAND VOICE GUIDELINES:\n${brandVoice}`,
-          messages: [{
-            role: "user",
-            content: `Write 3 distinct Instagram captions for this post.\n\nChannel: ${channel}\nPost context: ${context}${product ? `\nProduct: ${product}` : ""}\nTone direction: ${tone}\n\nRules:\n- Each caption should feel distinct (vary length, angle, opening hook)\n- Include 1-2 relevant hashtags at the end of each\n- No emojis unless it really serves the caption\n- Sound human, not branded\n\nReturn ONLY a valid JSON array of 3 strings. No markdown, no explanation, no preamble.`
-          }]
-        })
+        body: JSON.stringify({ channel, context, product, theme, tone, brandVoice }),
       });
-
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}));
-        throw new Error(err?.error?.message || `API error ${resp.status}`);
-      }
-
       const data = await resp.json();
-      const text = data.content?.find(b => b.type === "text")?.text || "[]";
-      const clean = text.replace(/```json|```/g, "").trim();
-      const parsed = JSON.parse(clean);
-      setCaptions(Array.isArray(parsed) ? parsed : [clean]);
+      if (!resp.ok || data.error) throw new Error(data.error || `HTTP ${resp.status}`);
+      setCaptions(data.captions || []);
     } catch(e) {
-      setCaptions([`Error: ${e.message || "Could not generate captions. Please try again."}`]);
+      console.error("Caption generation error:", e);
+      setErrorMsg(e.message || "Unknown error — check browser console");
     }
     setLoading(false);
   };
 
-  const copy = (t,i) => { navigator.clipboard.writeText(t); setCopied(i); setTimeout(()=>setCopied(null),1500); };
+  const copy = (t, i) => { navigator.clipboard.writeText(t); setCopied(i); setTimeout(() => setCopied(null), 1500); };
 
   return (
     <div>
@@ -574,36 +563,35 @@ export function Captions({ brandVoice }) {
       <p className="text-sm text-stone-400 mb-4">AI-drafted captions grounded in your brand voice.</p>
       <div className="bg-white rounded-xl border border-stone-100 p-4 shadow-sm mb-4">
         <Sel label="Channel" options={CHANNEL_OPTIONS} value={channel} onChange={e=>setChannel(e.target.value)} />
-        <Sel label="Content theme" options={["(no theme)", ...TYPE_OPTIONS]} value={tone} onChange={e=>setTone(e.target.value)} />
-        <Inp label="Product / coffee (optional)" value={product} onChange={e=>setProduct(e.target.value)} placeholder="e.g. Colombia Honey Process" />
-        <Txt label="Post context — what's this post about?" rows={3} value={context} onChange={e=>setContext(e.target.value)} placeholder="e.g. Behind the scenes at Mill City Roasters showing how our Vol. 3 blend is being roasted..." />
+        <Sel label="Content theme" options={["(no theme)",...TYPE_OPTIONS]} value={theme} onChange={e=>setTheme(e.target.value)} />
+        <Inp label="Coffee / product (optional)" value={product} onChange={e=>setProduct(e.target.value)} placeholder="e.g. Colombia Honey Process Vol. 3" />
+        <Txt label="Post context — what is this post about?" rows={3} value={context} onChange={e=>setContext(e.target.value)} placeholder="e.g. Behind the scenes at Mill City showing how our Vol. 3 blend is roasted..." />
         <Sel label="Tone direction" options={["On-brand default","More poetic","More direct","Playful","Educational","Hype / launch energy"]} value={tone} onChange={e=>setTone(e.target.value)} />
         <button onClick={generate} disabled={loading||!context.trim()}
           style={loading||!context.trim()?{}:{background:"#F05881"}}
           className="w-full disabled:bg-stone-200 disabled:text-stone-400 text-white py-3 md:py-2.5 rounded-lg font-medium text-sm mt-1 hover:opacity-90 transition-all">
-          {loading ? (
-            <span className="flex items-center justify-center gap-2">
-              <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin inline-block" />
-              Generating...
-            </span>
-          ) : "Generate Captions"}
+          {loading
+            ? <span className="flex items-center justify-center gap-2"><span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin"/>Generating...</span>
+            : "Generate Captions"}
         </button>
       </div>
+      {errorMsg && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+          <p className="text-sm font-semibold text-red-700 mb-1">Generation failed</p>
+          <p className="text-xs font-mono text-red-500 break-all">{errorMsg}</p>
+          <p className="text-xs text-red-400 mt-2">Make sure the Edge Function is deployed and ANTHROPIC_API_KEY is set in Supabase Vault.</p>
+        </div>
+      )}
       {captions.length > 0 && (
         <div className="space-y-3">
-          {captions.map((c, i) => {
-            const isError = c.startsWith("Error:");
-            return (
-              <div key={i} className={`bg-white rounded-xl border p-4 shadow-sm ${isError ? "border-red-200" : "border-stone-100"}`}>
-                <p className={`text-sm leading-relaxed whitespace-pre-wrap ${isError ? "text-red-500" : "text-stone-700"}`}>{c}</p>
-                {!isError && (
-                  <button onClick={()=>copy(c,i)} style={{color:"#F05881"}} className="mt-2 text-xs hover:opacity-70 font-medium">
-                    {copied===i ? "✓ Copied!" : "Copy"}
-                  </button>
-                )}
-              </div>
-            );
-          })}
+          {captions.map((c, i) => (
+            <div key={i} className="bg-white rounded-xl border border-stone-100 p-4 shadow-sm">
+              <p className="text-sm text-stone-700 leading-relaxed whitespace-pre-wrap">{c}</p>
+              <button onClick={()=>copy(c,i)} style={{color:"#F05881"}} className="mt-3 text-xs hover:opacity-70 font-medium">
+                {copied===i ? "✓ Copied!" : "Copy"}
+              </button>
+            </div>
+          ))}
         </div>
       )}
     </div>
