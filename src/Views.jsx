@@ -537,15 +537,32 @@ export function Captions({ brandVoice }) {
     setLoading(true); setCaptions([]);
     try {
       const resp = await fetch("https://api.anthropic.com/v1/messages", {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1000,
-          messages:[{role:"user",content:`You are the voice of tāst, a specialty coffee company. Generate 3 distinct social media captions for ${channel}.\n\nBRAND VOICE:\n${brandVoice}\n\nPOST CONTEXT: ${context}\n${product?`PRODUCT: ${product}`:""}\nTONE: ${tone}\n\nReturn ONLY a JSON array of 3 strings. No markdown, no preamble.`}]
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          system: `You are the voice of tāst, a specialty coffee discovery brand. Your tone is warm, confident, and culturally fluent — never gatekeeping, always inviting. You write captions that feel like they come from a real person who loves coffee, not a marketing department.\n\nBRAND VOICE GUIDELINES:\n${brandVoice}`,
+          messages: [{
+            role: "user",
+            content: `Write 3 distinct Instagram captions for this post.\n\nChannel: ${channel}\nPost context: ${context}${product ? `\nProduct: ${product}` : ""}\nTone direction: ${tone}\n\nRules:\n- Each caption should feel distinct (vary length, angle, opening hook)\n- Include 1-2 relevant hashtags at the end of each\n- No emojis unless it really serves the caption\n- Sound human, not branded\n\nReturn ONLY a valid JSON array of 3 strings. No markdown, no explanation, no preamble.`
+          }]
         })
       });
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err?.error?.message || `API error ${resp.status}`);
+      }
+
       const data = await resp.json();
-      const text = data.content?.find(b=>b.type==="text")?.text||"[]";
-      setCaptions(JSON.parse(text.replace(/```json|```/g,"").trim()));
-    } catch { setCaptions(["Error generating captions. Please try again."]); }
+      const text = data.content?.find(b => b.type === "text")?.text || "[]";
+      const clean = text.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(clean);
+      setCaptions(Array.isArray(parsed) ? parsed : [clean]);
+    } catch(e) {
+      setCaptions([`Error: ${e.message || "Could not generate captions. Please try again."}`]);
+    }
     setLoading(false);
   };
 
@@ -554,26 +571,39 @@ export function Captions({ brandVoice }) {
   return (
     <div>
       <h2 className="text-lg font-semibold text-stone-800 mb-1">Caption Generator</h2>
-      <p className="text-sm text-stone-400 mb-4">Generate on-brand captions from your brand voice guidelines.</p>
+      <p className="text-sm text-stone-400 mb-4">AI-drafted captions grounded in your brand voice.</p>
       <div className="bg-white rounded-xl border border-stone-100 p-4 shadow-sm mb-4">
         <Sel label="Channel" options={CHANNEL_OPTIONS} value={channel} onChange={e=>setChannel(e.target.value)} />
-        <Inp label="Product (optional)" value={product} onChange={e=>setProduct(e.target.value)} placeholder="e.g. Colombia Honey Process" />
-        <Txt label="Post context" rows={3} value={context} onChange={e=>setContext(e.target.value)} placeholder="What's this post about?" />
+        <Sel label="Content theme" options={["(no theme)", ...TYPE_OPTIONS]} value={tone} onChange={e=>setTone(e.target.value)} />
+        <Inp label="Product / coffee (optional)" value={product} onChange={e=>setProduct(e.target.value)} placeholder="e.g. Colombia Honey Process" />
+        <Txt label="Post context — what's this post about?" rows={3} value={context} onChange={e=>setContext(e.target.value)} placeholder="e.g. Behind the scenes at Mill City Roasters showing how our Vol. 3 blend is being roasted..." />
         <Sel label="Tone direction" options={["On-brand default","More poetic","More direct","Playful","Educational","Hype / launch energy"]} value={tone} onChange={e=>setTone(e.target.value)} />
         <button onClick={generate} disabled={loading||!context.trim()}
           style={loading||!context.trim()?{}:{background:"#F05881"}}
-          className="w-full disabled:bg-stone-200 disabled:text-stone-400 text-white py-3 md:py-2.5 rounded-lg font-medium text-sm mt-1 hover:opacity-90">
-          {loading?"Generating...":"Generate Captions"}
+          className="w-full disabled:bg-stone-200 disabled:text-stone-400 text-white py-3 md:py-2.5 rounded-lg font-medium text-sm mt-1 hover:opacity-90 transition-all">
+          {loading ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin inline-block" />
+              Generating...
+            </span>
+          ) : "Generate Captions"}
         </button>
       </div>
-      {captions.length>0 && (
+      {captions.length > 0 && (
         <div className="space-y-3">
-          {captions.map((c,i)=>(
-            <div key={i} className="bg-white rounded-xl border border-stone-100 p-4 shadow-sm">
-              <p className="text-sm text-stone-700 leading-relaxed whitespace-pre-wrap">{c}</p>
-              <button onClick={()=>copy(c,i)} style={{color:"#F05881"}} className="mt-2 text-xs hover:opacity-70 font-medium">{copied===i?"Copied!":"Copy"}</button>
-            </div>
-          ))}
+          {captions.map((c, i) => {
+            const isError = c.startsWith("Error:");
+            return (
+              <div key={i} className={`bg-white rounded-xl border p-4 shadow-sm ${isError ? "border-red-200" : "border-stone-100"}`}>
+                <p className={`text-sm leading-relaxed whitespace-pre-wrap ${isError ? "text-red-500" : "text-stone-700"}`}>{c}</p>
+                {!isError && (
+                  <button onClick={()=>copy(c,i)} style={{color:"#F05881"}} className="mt-2 text-xs hover:opacity-70 font-medium">
+                    {copied===i ? "✓ Copied!" : "Copy"}
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
