@@ -75,7 +75,7 @@ function ContentCard({ item, campaigns, onClick, compact, currentMember }) {
 }
 
 // ── PIPELINE ──────────────────────────────────────────────────────────────
-export function Pipeline({ items, setItems, addItem, updateItem, deleteItem, campaigns, products, setProducts, currentMember }) {
+export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, products, setProducts, currentMember }) {
   const isMobile = useIsMobile();
   const [view, setView] = useState("kanban");
   const [showForm, setShowForm] = useState(false);
@@ -244,7 +244,7 @@ export function Pipeline({ items, setItems, addItem, updateItem, deleteItem, cam
 }
 
 // ── CALENDAR ──────────────────────────────────────────────────────────────
-export function Calendar({ items, setItems, addItem, updateItem, deleteItem, campaigns, products, setProducts, currentMember }) {
+export function Calendar({ items, addItem, updateItem, deleteItem, campaigns, products, setProducts, currentMember }) {
   const isMobile = useIsMobile();
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());

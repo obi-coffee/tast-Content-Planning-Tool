@@ -3,7 +3,7 @@ import { PIPELINE_STAGES, TYPE_OPTIONS, STAGE_META, driveThumb, Tag, Modal, Inp,
 import CommentsPanel from "./components/CommentsPanel.jsx";
 import { Avatar } from "./components/Avatar.jsx";
 
-export function Campaigns({ campaigns, setCampaigns, addCampaign, updateCampaign, deleteCampaign, allItems, setAllItems, addItem, updateItem, deleteItem, products=[], setProducts=()=>{}, currentMember }) {
+export function Campaigns({ campaigns, addCampaign, updateCampaign, deleteCampaign, allItems, addItem, updateItem, deleteItem, products=[], setProducts=()=>{}, currentMember }) {
   const [active, setActive] = useState(null);
   const [activeTab, setActiveTab] = useState("content");
   const [showCampForm, setShowCampForm] = useState(false);
@@ -51,12 +51,15 @@ export function Campaigns({ campaigns, setCampaigns, addCampaign, updateCampaign
     const seqItems = [...linked].sort((a,b)=>(a.seq||0)-(b.seq||0));
     const channels = flattenChannels(c.channels);
 
-    const applyReorder = (from,to) => {
+    const applyReorder = async (from,to) => {
       const reordered = reorder(seqItems,from,to);
-      setAllItems(allItems.map(item=>{
-        const idx = reordered.findIndex(r=>r.id===item.id);
-        return idx>=0?{...item,seq:idx}:item;
-      }));
+      for (const item of reordered) {
+        const idx = reordered.indexOf(item);
+        if (item.seq !== idx) {
+          const { id, created_at, ...rest } = item;
+          await updateItem(id, { ...rest, seq: idx }).catch(console.error);
+        }
+      }
     };
 
     return (

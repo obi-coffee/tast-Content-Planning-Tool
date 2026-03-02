@@ -170,7 +170,7 @@ function DetailPanel({ item, campaigns, onClose, onEdit }) {
 }
 
 // ── Main Grid View ─────────────────────────────────────────────────────────
-export function InstagramGrid({ items, setItems, addItem, updateItem, deleteItem, campaigns, products, setProducts, currentMember }) {
+export function InstagramGrid({ items, addItem, updateItem, deleteItem, campaigns, products, setProducts, currentMember }) {
   const [selected, setSelected] = useState(null);
   const [editItem, setEditItem] = useState(null);
   const [showEditForm, setShowEditForm] = useState(false);
