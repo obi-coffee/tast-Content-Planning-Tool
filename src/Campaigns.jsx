@@ -111,7 +111,7 @@ export function Campaigns({ campaigns, addCampaign, updateCampaign, deleteCampai
                         onDragOver={e=>{e.preventDefault();setDragOverIdx(idx);}}
                         onDrop={()=>{if(dragIdx!==null&&dragIdx!==idx)applyReorder(dragIdx,idx);setDragIdx(null);setDragOverIdx(null);}}
                         onDragEnd={()=>{setDragIdx(null);setDragOverIdx(null);}}
-                        className="bg-white rounded-xl border mb-2 overflow-hidden cursor-grab transition-all"
+                        className="bg-white rounded-xl border mb-2 overflow-hidden cursor-grab transition-all duration-200"
                         style={{borderColor:dragOverIdx===idx?"#F05881":"#f5f5f4",opacity:dragIdx===idx?0.5:1}}>
                         <div className="flex items-center gap-3 p-3">
                           <div className="text-stone-300 select-none text-lg px-1">⠿</div>

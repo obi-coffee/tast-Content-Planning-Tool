@@ -102,7 +102,7 @@ function AppInner() {
       <div className="min-h-screen bg-london-fog font-inter">
         {/* ── Header ── */}
         <div className="bg-london-fog border-b border-rich-black/10 sticky top-0 z-40">
-          <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="w-full px-6 lg:px-10 py-4 flex items-center justify-between">
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-bold text-rich-black tracking-tight">tast</span>
               <span className="text-rich-black/40 text-sm font-mono uppercase tracking-wider text-[10px]">content ops</span>
@@ -120,7 +120,7 @@ function AppInner() {
           </div>
 
           {/* ── Grouped Tabs ── */}
-          <div className="max-w-5xl mx-auto px-4 overflow-x-auto">
+          <div className="w-full px-6 lg:px-10 overflow-x-auto">
             <div className="flex gap-0.5 items-end">
               {TAB_GROUPS.map((group) => (
                 <div key={group.label} className="flex items-end">
@@ -147,7 +147,7 @@ function AppInner() {
         </div>
 
         {/* ── Content ── */}
-        <div className="max-w-5xl mx-auto px-4 py-6">
+        <div className="w-full px-6 lg:px-10 py-6">
           {loading ? (
             <div className="flex items-center justify-center py-20">
               <div className="text-center">
