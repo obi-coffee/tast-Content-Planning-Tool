@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { PIPELINE_STAGES, TYPE_OPTIONS, STAGE_META, driveThumb, Tag, Modal, Inp, Sel, Txt, ChannelPicker, CampaignProgress, ContentForm, flattenChannels, normalizeChannels } from "./Components.jsx";
+import { PIPELINE_STAGES, TYPE_OPTIONS, STAGE_META, driveThumb, Tag, Modal, Inp, Sel, Txt, ChannelPicker, CampaignProgress, ContentForm, flattenChannels, normalizeChannels, EmptyState, CommentBadge } from "./Components.jsx";
 import CommentsPanel from "./components/CommentsPanel.jsx";
 import { Avatar } from "./components/Avatar.jsx";
 
-export function Campaigns({ campaigns, addCampaign, updateCampaign, deleteCampaign, allItems, addItem, updateItem, deleteItem, products=[], setProducts=()=>{}, currentMember }) {
+export function Campaigns({ campaigns, addCampaign, updateCampaign, deleteCampaign, allItems, addItem, updateItem, deleteItem, products=[], setProducts=()=>{}, currentMember, commentCounts = {} }) {
   const [active, setActive] = useState(null);
   const [activeTab, setActiveTab] = useState("content");
   const [showCampForm, setShowCampForm] = useState(false);
@@ -127,6 +127,7 @@ export function Campaigns({ campaigns, addCampaign, updateCampaign, deleteCampai
                             {item.date && <p className="text-xs text-stone-300 mt-0.5">{item.date}</p>}
                           </div>
                           {item.assigneeId && <Avatar memberId={item.assigneeId} size={22} />}
+                          <CommentBadge count={commentCounts[item.id] || 0} onClick={() => setCommentItemId(item.id)} />
                           <button onClick={()=>{setEditContent(item);setShowContentForm(true);}} className="text-xs text-stone-300 hover:text-stone-500 px-2">Edit</button>
                           <button onClick={()=>setCommentItemId(item.id)} className="text-xs text-stone-300 hover:text-[#F05881] px-1 transition-colors" title="Comments">💬</button>
                         </div>
@@ -190,7 +191,15 @@ export function Campaigns({ campaigns, addCampaign, updateCampaign, deleteCampai
         <h2 className="text-lg font-semibold text-stone-800">Campaigns</h2>
         <button onClick={()=>{setCampForm(emptyCamp);setShowCampForm(true);}} style={{background:"#F05881"}} className="hover:opacity-90 text-white text-sm px-4 py-2 rounded-lg font-medium">+ New Campaign</button>
       </div>
-      {campaigns.length===0 && <p className="text-stone-400 text-sm">No campaigns yet.</p>}
+      {campaigns.length===0 && (
+        <EmptyState
+          icon="📋"
+          title="No campaigns yet"
+          description="Campaigns help you group content around a specific theme, drop, or event."
+          actionLabel="+ New Campaign"
+          onAction={() => { setCampForm(emptyCamp); setShowCampForm(true); }}
+        />
+      )}
       <div className="space-y-3">
         {campaigns.map(c=>{
           const linked = allItems.filter(i=>String(i.campaignId)===String(c.id));

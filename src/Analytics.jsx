@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { PIPELINE_STAGES, STAGE_META, CHANNEL_OPTIONS, TYPE_OPTIONS, INTENT_BUCKET, INTENT_META, PHASES, getPhaseForDate, flattenChannels } from "./Components.jsx";
+import { PIPELINE_STAGES, STAGE_META, CHANNEL_OPTIONS, TYPE_OPTIONS, INTENT_BUCKET, INTENT_META, PHASES, getPhaseForDate, flattenChannels, FORMAT_OPTIONS } from "./Components.jsx";
 import { Avatar } from "./components/Avatar.jsx";
 import { TEAM_MEMBERS } from "./lib/team.js";
 
@@ -272,8 +272,200 @@ function GapDetector({ items }) {
   );
 }
 
+// ── Smart Recommendations ─────────────────────────────────────────────────
+function SmartRecommendations({ items }) {
+  const recommendations = useMemo(() => {
+    const recs = [];
+    const today = new Date();
+    const todayStr = today.toISOString().slice(0, 10);
+
+    // Check theme gaps — find themes not posted in 14+ days
+    const themeLastPosted = {};
+    items.filter(i => i.date && i.stage === "Published").forEach(i => {
+      if (!themeLastPosted[i.type] || i.date > themeLastPosted[i.type]) {
+        themeLastPosted[i.type] = i.date;
+      }
+    });
+    const intentLabels = { culture: "Culture & Community", brand: "Product & Brand", conversion: "Direct Conversion" };
+    Object.entries(INTENT_BUCKET).forEach(([theme, bucket]) => {
+      const last = themeLastPosted[theme];
+      if (!last) return;
+      const daysSince = Math.floor((today - new Date(last + "T00:00:00")) / 86400000);
+      if (daysSince > 14) {
+        recs.push({
+          type: "theme_gap",
+          priority: bucket === "culture" ? "high" : "medium",
+          message: `No "${theme}" post in ${daysSince} days`,
+          detail: `This theme is part of your ${intentLabels[bucket]} bucket. Consider scheduling one soon.`,
+        });
+      }
+    });
+
+    // Check format performance — compare engagement by format
+    const formatStats = {};
+    items.filter(i => i.stage === "Published" && i.metrics).forEach(i => {
+      const f = i.format || "Single Photo";
+      if (!formatStats[f]) formatStats[f] = { total: 0, engagement: 0 };
+      formatStats[f].total++;
+      const m = i.metrics;
+      formatStats[f].engagement += (parseInt(m.likes)||0) + (parseInt(m.comments)||0) + (parseInt(m.saves)||0) + (parseInt(m.shares)||0);
+    });
+    const formats = Object.entries(formatStats).filter(([,s]) => s.total >= 2);
+    if (formats.length >= 2) {
+      formats.sort((a, b) => (b[1].engagement / b[1].total) - (a[1].engagement / a[1].total));
+      const best = formats[0];
+      const worst = formats[formats.length - 1];
+      const bestAvg = Math.round(best[1].engagement / best[1].total);
+      const worstAvg = Math.round(worst[1].engagement / worst[1].total);
+      if (bestAvg > worstAvg * 1.5 && worstAvg > 0) {
+        recs.push({
+          type: "format_insight",
+          priority: "medium",
+          message: `${best[0]} outperforms ${worst[0]} by ${Math.round(bestAvg / worstAvg)}x`,
+          detail: `${best[0]} averages ${bestAvg} engagements vs ${worstAvg} for ${worst[0]}. Consider using ${best[0]} more.`,
+        });
+      }
+    }
+
+    // Channel gap — check if any channel has 0 posts in the last 14 days
+    CHANNEL_OPTIONS.forEach(ch => {
+      const recent = items.filter(i => {
+        if (!i.date) return false;
+        const daysDiff = Math.floor((today - new Date(i.date + "T00:00:00")) / 86400000);
+        return daysDiff >= 0 && daysDiff <= 14 && flattenChannels(i.channels).includes(ch);
+      });
+      if (recent.length === 0) {
+        const total = items.filter(i => flattenChannels(i.channels).includes(ch)).length;
+        if (total > 0) {
+          recs.push({
+            type: "channel_gap",
+            priority: "low",
+            message: `No ${ch} content in the last 2 weeks`,
+            detail: `You have ${total} total ${ch} posts but none scheduled recently.`,
+          });
+        }
+      }
+    });
+
+    // Unassigned content warning
+    const unassigned = items.filter(i => !i.assigneeId && i.stage !== "Published" && i.stage !== "Idea").length;
+    if (unassigned > 2) {
+      recs.push({
+        type: "unassigned",
+        priority: "medium",
+        message: `${unassigned} in-progress items have no assignee`,
+        detail: "Assign team members to avoid bottlenecks.",
+      });
+    }
+
+    if (recs.length === 0) {
+      recs.push({ type: "ok", priority: "ok", message: "Looking good!", detail: "No recommendations right now. Keep it up." });
+    }
+
+    return recs.sort((a, b) => {
+      const order = { high: 0, medium: 1, low: 2, ok: 3 };
+      return (order[a.priority] || 3) - (order[b.priority] || 3);
+    });
+  }, [items]);
+
+  const prioStyle = (p) => ({
+    high:   { bg: "#fff0f4", border: "#F05881", dot: "#F05881" },
+    medium: { bg: "#fffbeb", border: "#fcd34d", dot: "#f59e0b" },
+    low:    { bg: "#f0f9ff", border: "#93c5fd", dot: "#3b82f6" },
+    ok:     { bg: "#f0fdf4", border: "#86efac", dot: "#22c55e" },
+  }[p] || { bg: "#f5f5f4", border: "#e7e5e4", dot: "#a8a29e" });
+
+  return (
+    <div className="space-y-2">
+      {recommendations.map((r, i) => {
+        const s = prioStyle(r.priority);
+        return (
+          <div key={i} className="rounded-xl border px-4 py-3 flex items-start gap-3" style={{ background: s.bg, borderColor: s.border }}>
+            <div className="w-2 h-2 rounded-full mt-1.5 shrink-0" style={{ background: s.dot }} />
+            <div>
+              <p className="text-sm font-semibold text-stone-800">{r.message}</p>
+              <p className="text-xs text-stone-500 mt-0.5">{r.detail}</p>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Performance Metrics Summary ───────────────────────────────────────────
+function PerformanceMetrics({ items }) {
+  const published = useMemo(() => items.filter(i => i.stage === "Published" && i.metrics), [items]);
+
+  const totals = useMemo(() => {
+    const t = { likes: 0, comments: 0, saves: 0, shares: 0, count: 0 };
+    published.forEach(i => {
+      const m = i.metrics;
+      t.likes += parseInt(m.likes) || 0;
+      t.comments += parseInt(m.comments) || 0;
+      t.saves += parseInt(m.saves) || 0;
+      t.shares += parseInt(m.shares) || 0;
+      if ((parseInt(m.likes)||0) + (parseInt(m.comments)||0) + (parseInt(m.saves)||0) + (parseInt(m.shares)||0) > 0) t.count++;
+    });
+    return t;
+  }, [published]);
+
+  const topPosts = useMemo(() => {
+    return published
+      .map(i => ({
+        ...i,
+        totalEng: (parseInt(i.metrics?.likes)||0) + (parseInt(i.metrics?.comments)||0) + (parseInt(i.metrics?.saves)||0) + (parseInt(i.metrics?.shares)||0),
+      }))
+      .filter(i => i.totalEng > 0)
+      .sort((a, b) => b.totalEng - a.totalEng)
+      .slice(0, 5);
+  }, [published]);
+
+  if (totals.count === 0) {
+    return (
+      <div className="text-center py-6">
+        <p className="text-xs text-stone-400">No performance data yet.</p>
+        <p className="text-xs text-stone-300 mt-1">Add metrics to published content to see engagement insights.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="grid grid-cols-4 gap-3 mb-4">
+        {[
+          { label: "Likes", value: totals.likes, color: "#F05881" },
+          { label: "Comments", value: totals.comments, color: "#a12f52" },
+          { label: "Saves", value: totals.saves, color: "#ef4056" },
+          { label: "Shares", value: totals.shares, color: "#fa8f9c" },
+        ].map(s => (
+          <div key={s.label} className="text-center">
+            <p className="text-lg font-bold" style={{ color: s.color }}>{s.value}</p>
+            <p className="text-xs text-stone-400">{s.label}</p>
+          </div>
+        ))}
+      </div>
+      {topPosts.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-2">Top performing</p>
+          {topPosts.map((p, i) => (
+            <div key={p.id} className="flex items-center gap-3 mb-2">
+              <span className="text-xs font-bold text-stone-300 w-4">#{i + 1}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-stone-700 truncate">{p.title}</p>
+                <p className="text-xs text-stone-400">{p.type} · {p.format}</p>
+              </div>
+              <span className="text-sm font-bold shrink-0" style={{ color: PINK }}>{p.totalEng}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main Analytics View ────────────────────────────────────────────────────
-export function Analytics({ items, campaigns }) {
+export function Analytics({ items, campaigns, updateItem }) {
   const today = new Date();
   const thisMonth = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}`;
 
@@ -556,7 +748,7 @@ export function Analytics({ items, campaigns }) {
 
       {/* ── Campaign health ── */}
       {campaignStats.length > 0 && (
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 mb-5">
           <p className="text-sm font-semibold text-stone-800 mb-3">Campaign health</p>
           <div className="space-y-3">
             {campaignStats.map(c => {
@@ -579,6 +771,22 @@ export function Analytics({ items, campaigns }) {
           </div>
         </div>
       )}
+
+      <div className="grid md:grid-cols-2 gap-5 mb-5">
+        {/* ── Performance Metrics ── */}
+        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+          <p className="text-sm font-semibold text-stone-800 mb-1">Performance tracking</p>
+          <p className="text-xs text-stone-400 mb-3">Engagement metrics on published content</p>
+          <PerformanceMetrics items={items} />
+        </div>
+
+        {/* ── Smart Recommendations ── */}
+        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+          <p className="text-sm font-semibold text-stone-800 mb-1">Smart recommendations</p>
+          <p className="text-xs text-stone-400 mb-3">AI-powered suggestions based on your content</p>
+          <SmartRecommendations items={items} />
+        </div>
+      </div>
     </div>
   );
 }

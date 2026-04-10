@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { driveThumb, STAGE_META, Tag, Modal, ContentForm, flattenChannels } from "./Components.jsx";
+import { driveThumb, STAGE_META, Tag, Modal, ContentForm, flattenChannels, EmptyState, CommentBadge } from "./Components.jsx";
 import { Avatar } from "./components/Avatar.jsx";
 
 const CHANNEL = "Instagram";
@@ -96,7 +96,7 @@ function GridCell({ item, index, isHighlighted, onClick, size = "md" }) {
 }
 
 // ── Detail panel ───────────────────────────────────────────────────────────
-function DetailPanel({ item, campaigns, onClose, onEdit }) {
+function DetailPanel({ item, campaigns, onClose, onEdit, commentCount = 0 }) {
   const campaign = campaigns.find(c => String(c.id) === String(item.campaignId));
   const thumb = driveThumb(item.driveUrl);
   const [imgErr, setImgErr] = useState(false);
@@ -155,7 +155,10 @@ function DetailPanel({ item, campaigns, onClose, onEdit }) {
         )}
 
         <div className="flex items-center justify-between text-xs text-stone-400">
-          <span>{item.date || "No date set"}</span>
+          <div className="flex items-center gap-2">
+            <span>{item.date || "No date set"}</span>
+            {commentCount > 0 && <CommentBadge count={commentCount} />}
+          </div>
           {item.assigneeId && <Avatar memberId={item.assigneeId} size={20} showName />}
         </div>
 
@@ -170,7 +173,7 @@ function DetailPanel({ item, campaigns, onClose, onEdit }) {
 }
 
 // ── Main Grid View ─────────────────────────────────────────────────────────
-export function InstagramGrid({ items, addItem, updateItem, deleteItem, campaigns, products, setProducts, currentMember }) {
+export function InstagramGrid({ items, addItem, updateItem, deleteItem, campaigns, products, setProducts, currentMember, commentCounts = {} }) {
   const [selected, setSelected] = useState(null);
   const [editItem, setEditItem] = useState(null);
   const [showEditForm, setShowEditForm] = useState(false);
@@ -356,6 +359,7 @@ export function InstagramGrid({ items, addItem, updateItem, deleteItem, campaign
               campaigns={campaigns}
               onClose={() => setSelected(null)}
               onEdit={item => { setEditItem(item); setSelected(null); setShowEditForm(true); }}
+              commentCount={commentCounts[selected.id] || 0}
             />
           ) : (
             <div className="text-center py-12 text-stone-300">

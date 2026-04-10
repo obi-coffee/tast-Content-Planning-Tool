@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { PIPELINE_STAGES, CHANNEL_OPTIONS, TYPE_OPTIONS, STAGE_META, TYPE_COLORS, driveThumb, Tag, Modal, Inp, Sel, Txt, ChannelPicker, CampaignProgress, ContentForm, flattenChannels, PhaseTag, PHASES, getPhaseForDate } from "./Components.jsx";
+import { PIPELINE_STAGES, CHANNEL_OPTIONS, TYPE_OPTIONS, STAGE_META, TYPE_COLORS, driveThumb, Tag, Modal, Inp, Sel, Txt, ChannelPicker, CampaignProgress, ContentForm, flattenChannels, PhaseTag, PHASES, getPhaseForDate, EmptyState, CommentBadge } from "./Components.jsx";
 import { Avatar } from "./components/Avatar.jsx";
 import CommentsPanel from "./components/CommentsPanel.jsx";
 
@@ -28,18 +28,29 @@ function getItemColor(item, products) {
 }
 
 // ── Content Card ───────────────────────────────────────────────────────────
-function ContentCard({ item, campaigns, onClick, compact, currentMember }) {
+function ContentCard({ item, campaigns, onClick, compact, currentMember, commentCount = 0, selected, onToggleSelect }) {
   const [showComments, setShowComments] = useState(false);
   const campaign = campaigns.find(c=>String(c.id)===String(item.campaignId));
   const channels = flattenChannels(item.channels);
   const thumb = driveThumb(item.driveUrl);
   return (
     <>
-      <div onClick={onClick} className="bg-white rounded-xl border border-stone-100 shadow-sm cursor-pointer hover:border-[#fa8f9c] transition-colors mb-2 overflow-hidden">
+      <div onClick={onClick} className="bg-white rounded-xl border shadow-sm cursor-pointer hover:border-[#fa8f9c] transition-colors mb-2 overflow-hidden"
+        style={{ borderColor: selected ? '#F05881' : '#f5f5f4' }}>
         {thumb && !compact && <img src={thumb} alt="" className="w-full object-cover" style={{height:100}} onError={e=>e.target.style.display="none"} />}
         <div className={compact?"p-2":"p-3"}>
-          <span className={`font-medium text-stone-800 ${compact?"text-xs":"text-sm"}`}>{item.title}</span>
-          {!compact && item.product && <p className="text-xs text-stone-400 mt-0.5">{item.product}</p>}
+          <div className="flex items-start gap-2">
+            {onToggleSelect && (
+              <input type="checkbox" checked={!!selected} onChange={e => { e.stopPropagation(); onToggleSelect(item.id); }}
+                onClick={e => e.stopPropagation()}
+                className="mt-1 shrink-0 accent-[#F05881]" />
+            )}
+            <div className="flex-1 min-w-0">
+              <span className={`font-medium text-stone-800 ${compact?"text-xs":"text-sm"}`}>{item.title}</span>
+              {!compact && item.product && <p className="text-xs text-stone-400 mt-0.5">{item.product}</p>}
+            </div>
+            {commentCount > 0 && <CommentBadge count={commentCount} onClick={() => setShowComments(true)} />}
+          </div>
           {!compact && campaign && <div className="mt-1.5"><span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{background:"#fff0f4",color:"#F05881"}}>↗ {campaign.name}</span></div>}
           {!compact && campaign?.keyMessage && <p className="text-xs text-stone-400 mt-1 line-clamp-1 italic">"{campaign.keyMessage}"</p>}
           {!compact && item.draftCopy && <p className="text-xs text-stone-500 mt-1 line-clamp-2 border-l-2 pl-2 border-stone-200">{item.draftCopy}</p>}
@@ -51,7 +62,7 @@ function ContentCard({ item, campaigns, onClick, compact, currentMember }) {
           {item.date && <p className="text-xs text-stone-300 mt-1">{item.date}</p>}
           {!compact && (
             <div className="flex items-center justify-between mt-2">
-              {item.owner && <p className="text-xs text-stone-300">Owner: {item.owner}</p>}
+              {item.assigneeId && <Avatar memberId={item.assigneeId} size={18} />}
               <button
                 onClick={e=>{e.stopPropagation();setShowComments(true);}}
                 className="text-xs text-stone-300 hover:text-[#F05881] transition-colors ml-auto flex items-center gap-1"
@@ -74,8 +85,38 @@ function ContentCard({ item, campaigns, onClick, compact, currentMember }) {
   );
 }
 
+// ── CSV helpers ───────────────────────────────────────────────────────────
+function exportItemsToCSV(items) {
+  const headers = ["title","type","stage","date","channels","format","product","draftCopy","notes","assigneeId","campaignId"];
+  const rows = items.map(item => headers.map(h => {
+    if (h === "channels") return flattenChannels(item.channels).join("; ");
+    return String(item[h] || "").replace(/"/g, '""');
+  }));
+  const csv = [headers.join(","), ...rows.map(r => r.map(c => `"${c}"`).join(","))].join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = `tast-content-${new Date().toISOString().slice(0,10)}.csv`; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function parseCSV(text) {
+  const lines = text.split("\n").filter(l => l.trim());
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(",").map(h => h.replace(/"/g, "").trim());
+  return lines.slice(1).map(line => {
+    const values = line.match(/("(?:[^"]|"")*"|[^,]*)/g) || [];
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = (values[i] || "").replace(/^"|"$/g, "").replace(/""/g, '"').trim(); });
+    if (obj.channels) {
+      const parts = obj.channels.split(";").map(s => s.trim()).filter(Boolean);
+      obj.channels = { primary: parts[0] || "Instagram", secondary: parts.slice(1) };
+    }
+    return obj;
+  });
+}
+
 // ── PIPELINE ──────────────────────────────────────────────────────────────
-export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, products, setProducts, currentMember }) {
+export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, products, setProducts, currentMember, commentCounts = {} }) {
   const isMobile = useIsMobile();
   const [view, setView] = useState("kanban");
   const [showForm, setShowForm] = useState(false);
@@ -84,6 +125,63 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
   const [dragOver, setDragOver] = useState(null);
   const [phaseFilter, setPhaseFilter] = useState("all");
   const [themeFilter, setThemeFilter] = useState("all");
+
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [bulkMode, setBulkMode] = useState(false);
+  const [showBulkActions, setShowBulkActions] = useState(false);
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+  const selectAll = () => setSelectedIds(new Set(filteredItems.map(i => i.id)));
+  const clearSelection = () => { setSelectedIds(new Set()); setBulkMode(false); setShowBulkActions(false); };
+
+  const bulkMoveStage = async (stage) => {
+    for (const id of selectedIds) {
+      const item = items.find(i => i.id === id);
+      if (item && item.stage !== stage) {
+        const { id: _id, created_at, ...rest } = item;
+        await updateItem(id, { ...rest, stage }).catch(console.error);
+      }
+    }
+    clearSelection();
+  };
+  const bulkAssign = async (assigneeId) => {
+    for (const id of selectedIds) {
+      const item = items.find(i => i.id === id);
+      if (item) {
+        const { id: _id, created_at, ...rest } = item;
+        await updateItem(id, { ...rest, assigneeId }).catch(console.error);
+      }
+    }
+    clearSelection();
+  };
+  const bulkDelete = async () => {
+    for (const id of selectedIds) {
+      await deleteItem(id).catch(console.error);
+    }
+    clearSelection();
+  };
+
+  const handleImportCSV = () => {
+    const input = document.createElement("input"); input.type = "file"; input.accept = ".csv";
+    input.onchange = async (e) => {
+      const file = e.target.files[0]; if (!file) return;
+      const text = await file.text();
+      const rows = parseCSV(text);
+      for (const row of rows) {
+        if (!row.title) continue;
+        const { id, created_at, ...rest } = row;
+        await addItem({ stage: "Idea", type: TYPE_OPTIONS[0], format: "Single Photo", ...rest }).catch(console.error);
+      }
+    };
+    input.click();
+  };
 
   const openEdit = item => { setEditItem(item); setShowForm(true); };
   const saveItem = async (form) => {
@@ -114,11 +212,25 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <h2 className="text-lg font-semibold text-stone-800">Content Pipeline</h2>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Bulk / CSV controls */}
+          <button onClick={() => { setBulkMode(!bulkMode); if (bulkMode) clearSelection(); }}
+            className="text-xs px-3 py-1.5 rounded-lg border font-medium transition-all"
+            style={bulkMode ? { background: "#F05881", color: "white", borderColor: "#F05881" } : { borderColor: "#e7e5e4", color: "#78716c" }}>
+            {bulkMode ? "Cancel select" : "Select"}
+          </button>
+          <button onClick={() => exportItemsToCSV(filteredItems)}
+            className="text-xs px-3 py-1.5 rounded-lg border border-stone-200 text-stone-500 hover:text-stone-700 font-medium">
+            Export CSV
+          </button>
+          <button onClick={handleImportCSV}
+            className="text-xs px-3 py-1.5 rounded-lg border border-stone-200 text-stone-500 hover:text-stone-700 font-medium">
+            Import CSV
+          </button>
           <div className="flex bg-stone-100 rounded-lg p-0.5">
-            {[["kanban","⊞ Board"],["list","≡ List"]].map(([v,l])=>(
+            {[["kanban","Board"],["list","List"]].map(([v,l])=>(
               <button key={v} onClick={()=>setView(v)} className="text-xs px-3 py-1.5 rounded-md font-medium transition-all"
                 style={view===v?{background:"#F05881",color:"white"}:{color:"#78716c"}}>{l}</button>
             ))}
@@ -127,6 +239,26 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
             className="hover:opacity-90 text-white text-sm px-4 py-2.5 md:py-2 rounded-lg font-medium">+ Add</button>
         </div>
       </div>
+
+      {/* Bulk action bar */}
+      {bulkMode && selectedIds.size > 0 && (
+        <div className="bg-white rounded-xl border border-[#F05881] p-3 mb-4 flex items-center gap-3 flex-wrap shadow-sm">
+          <span className="text-sm font-medium text-stone-800">{selectedIds.size} selected</span>
+          <button onClick={selectAll} className="text-xs text-[#F05881] hover:opacity-70 font-medium">Select all ({filteredItems.length})</button>
+          <div className="h-4 w-px bg-stone-200" />
+          <span className="text-xs text-stone-400">Move to:</span>
+          {PIPELINE_STAGES.map(s => (
+            <button key={s} onClick={() => bulkMoveStage(s)}
+              className="text-xs px-2 py-1 rounded-full border font-medium hover:opacity-70"
+              style={{ borderColor: STAGE_META[s].color + "66", color: STAGE_META[s].color }}>
+              {s}
+            </button>
+          ))}
+          <div className="h-4 w-px bg-stone-200" />
+          <button onClick={bulkDelete} className="text-xs text-red-400 hover:text-red-600 font-medium">Delete</button>
+          <button onClick={clearSelection} className="text-xs text-stone-400 hover:text-stone-600 ml-auto">Clear</button>
+        </div>
+      )}
 
       {/* Phase filter pills */}
       <div className="flex gap-1.5 flex-wrap mb-2">
@@ -139,7 +271,7 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
           <button key={p.id} onClick={()=>setPhaseFilter(phaseFilter===p.id?"all":p.id)}
             className="text-xs px-2.5 py-1 rounded-full border font-medium transition-all"
             style={phaseFilter===p.id?{background:p.color,color:"white",borderColor:p.color}:{background:"white",color:p.color,borderColor:p.color+"66"}}>
-            {p.name.split("—")[0].trim()}
+            {p.name.split("\u2014")[0].trim()}
           </button>
         ))}
       </div>
@@ -160,7 +292,15 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
         ))}
       </div>
 
-      {view==="kanban" ? (
+      {items.length === 0 ? (
+        <EmptyState
+          icon="+"
+          title="No content yet"
+          description="Start building your content pipeline. Add your first piece of content or import from CSV."
+          actionLabel="+ Add Content"
+          onAction={() => { setEditItem(null); setShowForm(true); }}
+        />
+      ) : view==="kanban" ? (
         <div className="flex gap-3 overflow-x-auto pb-4" style={{minHeight:400}}>
           {PIPELINE_STAGES.map(stage=>{
             const stageItems = filteredItems.filter(i=>i.stage===stage);
@@ -181,7 +321,9 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
                 </div>
                 {stageItems.map(item=>(
                   <div key={item.id} draggable onDragStart={()=>setDragItem(item)} style={{opacity:dragItem?.id===item.id?0.5:1}}>
-                    <ContentCard item={item} campaigns={campaigns} onClick={()=>openEdit(item)} compact={isMobile} currentMember={currentMember} />
+                    <ContentCard item={item} campaigns={campaigns} onClick={()=>openEdit(item)} compact={isMobile} currentMember={currentMember}
+                      commentCount={commentCounts[item.id] || 0}
+                      selected={selectedIds.has(item.id)} onToggleSelect={bulkMode ? toggleSelect : null} />
                   </div>
                 ))}
                 {!stageItems.length && <p className="text-xs text-stone-300 text-center mt-4">Drop here</p>}
@@ -205,19 +347,26 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
                   const campaign = campaigns.find(c=>String(c.id)===String(item.campaignId));
                   const channels = flattenChannels(item.channels);
                   const thumb = driveThumb(item.driveUrl);
+                  const cc = commentCounts[item.id] || 0;
                   return (
                     <div key={item.id} onClick={()=>openEdit(item)}
                       className="bg-white rounded-xl border border-stone-100 px-4 py-3 shadow-sm cursor-pointer hover:border-[#fa8f9c] mb-1.5 flex items-center gap-3">
+                      {bulkMode && (
+                        <input type="checkbox" checked={selectedIds.has(item.id)} onChange={() => toggleSelect(item.id)}
+                          onClick={e => e.stopPropagation()} className="shrink-0 accent-[#F05881]" />
+                      )}
                       {thumb && <img src={thumb} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" onError={e=>e.target.style.display="none"} />}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="font-medium text-stone-800 text-sm">{item.title}</p>
                           {campaign && <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{background:"#fff0f4",color:"#F05881"}}>↗ {campaign.name}</span>}
+                          {cc > 0 && <CommentBadge count={cc} />}
                         </div>
                         {campaign?.keyMessage && <p className="text-xs text-stone-400 mt-0.5 italic line-clamp-1">"{campaign.keyMessage}"</p>}
                         {item.draftCopy && <p className="text-xs text-stone-400 mt-0.5 line-clamp-1">{item.draftCopy}</p>}
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+                        {item.assigneeId && <Avatar memberId={item.assigneeId} size={18} />}
                         {channels.map(ch=><Tag key={ch} label={ch} colorClass="bg-stone-100 text-stone-500" />)}
                         {item.date && <span className="text-xs text-stone-300 ml-1">{item.date}</span>}
                       </div>
@@ -244,7 +393,7 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
 }
 
 // ── CALENDAR ──────────────────────────────────────────────────────────────
-export function Calendar({ items, addItem, updateItem, deleteItem, campaigns, products, setProducts, currentMember }) {
+export function Calendar({ items, addItem, updateItem, deleteItem, campaigns, products, setProducts, currentMember, commentCounts = {} }) {
   const isMobile = useIsMobile();
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());

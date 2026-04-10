@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ProductSelector, ProductManager } from "./Products.jsx";
 import { Avatar, AssigneeSelector } from "./components/Avatar.jsx";
+import { CONTENT_TEMPLATES } from "./lib/templates.js";
 
 export const PIPELINE_STAGES = ["Idea", "In Campaign", "In Production", "Ready", "Published"];
 export const CHANNEL_OPTIONS = ["Instagram", "Email", "Website", "TikTok", "LinkedIn"];
@@ -328,6 +329,102 @@ export function PhaseTag({ dateStr, className = "" }) {
   );
 }
 
+// ── Empty State ───────────────────────────────────────────────────────────
+export function EmptyState({ icon = "~", title, description, actionLabel, onAction }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+      <div className="w-14 h-14 rounded-2xl bg-stone-100 flex items-center justify-center text-2xl text-stone-300 mb-4">{icon}</div>
+      <p className="text-sm font-semibold text-stone-500 mb-1">{title}</p>
+      {description && <p className="text-xs text-stone-400 max-w-xs mb-4">{description}</p>}
+      {actionLabel && onAction && (
+        <button onClick={onAction} style={{ background: "#F05881" }}
+          className="text-sm text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-opacity">
+          {actionLabel}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ── Comment Badge ─────────────────────────────────────────────────────────
+export function CommentBadge({ count, onClick }) {
+  if (!count) return null;
+  return (
+    <button
+      onClick={e => { e.stopPropagation(); onClick?.(); }}
+      className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full transition-colors hover:bg-[#F05881]/10"
+      style={{ color: "#F05881" }}
+      title={`${count} comment${count !== 1 ? 's' : ''}`}
+    >
+      <span style={{ fontSize: 10 }}>💬</span>
+      <span className="font-medium">{count}</span>
+    </button>
+  );
+}
+
+// ── Collapsible Form Section ──────────────────────────────────────────────
+export function FormSection({ title, defaultOpen = true, children }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="mb-2">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="flex items-center justify-between w-full py-2 text-xs font-semibold uppercase tracking-wider text-stone-400 hover:text-stone-600 transition-colors"
+      >
+        {title}
+        <span className="text-sm transition-transform" style={{ transform: open ? 'rotate(0deg)' : 'rotate(-90deg)' }}>
+          ▾
+        </span>
+      </button>
+      {open && <div>{children}</div>}
+    </div>
+  );
+}
+
+// ── Template Picker ───────────────────────────────────────────────────────
+export function TemplatePicker({ onSelect, onClose }) {
+  const [search, setSearch] = useState("");
+  const filtered = CONTENT_TEMPLATES.filter(t =>
+    t.name.toLowerCase().includes(search.toLowerCase()) ||
+    t.type.toLowerCase().includes(search.toLowerCase()) ||
+    t.description.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="mb-4">
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">Quick-create from template</p>
+        <button onClick={onClose} className="text-xs text-stone-400 hover:text-stone-600">Cancel</button>
+      </div>
+      <input
+        value={search}
+        onChange={e => setSearch(e.target.value)}
+        placeholder="Search templates..."
+        className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#F05881]/40 mb-3"
+      />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto">
+        {filtered.map(t => (
+          <button
+            key={t.id}
+            onClick={() => onSelect(t)}
+            className="text-left bg-white border border-stone-100 rounded-xl p-3 hover:border-[#fa8f9c] transition-colors"
+          >
+            <p className="text-sm font-medium text-stone-800">{t.name}</p>
+            <p className="text-xs text-stone-400 mt-0.5">{t.description}</p>
+            <div className="flex gap-1 mt-2 flex-wrap">
+              <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "#F0588118", color: "#F05881" }}>{t.type}</span>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-stone-100 text-stone-500">{t.format}</span>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-stone-100 text-stone-500">{t.channels.primary}</span>
+            </div>
+          </button>
+        ))}
+        {filtered.length === 0 && <p className="text-xs text-stone-400 col-span-2 text-center py-4">No templates match your search</p>}
+      </div>
+    </div>
+  );
+}
+
 export function CampaignProgress({ items }) {
   const total = items.length;
   if (!total) return <p className="text-xs text-stone-300 mb-4">No content yet.</p>;
@@ -359,6 +456,7 @@ export function CampaignProgress({ items }) {
 }
 
 export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, lockCampaignId, products=[], setProducts=()=>{}, onOpenComments, currentMember }) {
+  const [showTemplates, setShowTemplates] = useState(false);
   const [form, setForm] = useState(() => {
     const base = {
       title:"", type:TYPE_OPTIONS[0],
@@ -366,17 +464,30 @@ export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, loc
       format: FORMAT_OPTIONS[0],
       stage:"Idea", campaignId:"", date:"", notes:"", product:"",
       draftCopy:"", driveUrl:"", driveUrls:[], owner:"", assigneeId:"", seq:0,
+      metrics: { likes: "", comments: "", saves: "", shares: "" },
     };
     if (!initial) return base;
     const channels = normalizeChannels(initial.channels);
     const driveUrls = initial.driveUrls?.length
       ? initial.driveUrls
       : initial.driveUrl ? [initial.driveUrl] : [];
-    return { ...base, ...initial, channels, driveUrls };
+    return { ...base, ...initial, channels, driveUrls, metrics: initial.metrics || base.metrics };
   });
 
   const [showProductManager, setShowProductManager] = useState(false);
   const f = (k,v) => setForm(p=>({...p,[k]:v}));
+
+  const applyTemplate = (tpl) => {
+    setForm(p => ({
+      ...p,
+      type: tpl.type,
+      format: tpl.format,
+      channels: tpl.channels,
+      stage: tpl.stage,
+      notes: tpl.notes || p.notes,
+    }));
+    setShowTemplates(false);
+  };
 
   const isInstagramPrimary = normalizeChannels(form.channels).primary === "Instagram";
 
@@ -398,7 +509,6 @@ export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, loc
 
   const save = () => {
     if (!form.title.trim()) return;
-    // Keep driveUrl as the first image for backward compat
     const driveUrls = (form.driveUrls||[]).filter(u=>u.trim());
     onSave({ ...form, driveUrls, driveUrl: driveUrls[0] || "" });
     onClose();
@@ -408,129 +518,153 @@ export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, loc
 
   return (
     <>
-      <Inp label="Title" value={form.title} onChange={e=>f("title",e.target.value)} placeholder="Content title" />
-      <ProductSelector value={form.product} onChange={v=>f("product",v)} products={products} onManage={()=>setShowProductManager(true)} />
-      {showProductManager && <ProductManager products={products} setProducts={setProducts} onClose={()=>setShowProductManager(false)} />}
-      <Sel label="Content type / theme" options={TYPE_OPTIONS} value={form.type} onChange={e=>f("type",e.target.value)} />
-
-      {/* Intent bucket hint */}
-      {form.type && INTENT_BUCKET[form.type] && (() => {
-        const bucket = INTENT_BUCKET[form.type];
-        const meta = INTENT_META[bucket];
-        return (
-          <div className="mb-3 -mt-1 flex items-center gap-1.5">
-            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: meta.color + "18", color: meta.color }}>
-              {meta.label}
-            </span>
-            <span className="text-xs text-stone-300">· {bucket === "culture" ? "70%" : bucket === "brand" ? "20%" : "10%"} bucket</span>
-          </div>
-        );
-      })()}
-
-      {/* ── Post Format ── */}
-      <FormatPicker value={form.format||FORMAT_OPTIONS[0]} onChange={v=>f("format",v)} />
-
-      <ChannelPicker selected={form.channels} onChange={v=>f("channels",v)} />
-      <StagePicker value={form.stage} onChange={v=>f("stage",v)} />
-      {!lockCampaignId && campaigns.length>0 && (
-        <div className="mb-3">
-          <label className="block text-sm font-medium text-stone-600 mb-1">Link to Campaign</label>
-          <select value={form.campaignId} onChange={e=>f("campaignId",e.target.value)}
-            className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none bg-white focus:ring-2 focus:ring-[#F05881]/40">
-            <option value="">No campaign</option>
-            {campaigns.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-        </div>
+      {/* Template picker for new content */}
+      {!initial?.id && !showTemplates && (
+        <button onClick={() => setShowTemplates(true)}
+          className="w-full mb-4 text-xs font-medium px-3 py-2 rounded-lg border border-dashed border-[#F05881]/40 text-[#F05881] hover:bg-[#F05881]/5 transition-colors">
+          Use a template for quick setup
+        </button>
       )}
-      {linkedCampaign?.keyMessage && (
-        <div className="mb-3 p-3 rounded-lg border text-xs" style={{background:"#fff0f4",borderColor:"#fa8f9c"}}>
-          <p className="font-semibold mb-1" style={{color:"#F05881"}}>↗ {linkedCampaign.name}</p>
-          <p className="text-stone-600">{linkedCampaign.keyMessage}</p>
-        </div>
-      )}
-      <Inp label="Scheduled date" type="date" value={form.date} onChange={e=>f("date",e.target.value)} />
-      {/* Phase indicator */}
-      {form.date && (() => {
-        const phase = getPhaseForDate(form.date);
-        return phase ? (
-          <div className="mb-3 -mt-1">
-            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: phase.color + "22", color: phase.color }}>
-              📅 {phase.name}
-            </span>
-          </div>
-        ) : null;
-      })()}
+      {showTemplates && <TemplatePicker onSelect={applyTemplate} onClose={() => setShowTemplates(false)} />}
 
-      {/* ── Assignee ── */}
-      <div className="mb-3">
-        <AssigneeSelector value={form.assigneeId||null} onChange={v=>f("assigneeId",v)} label="Assign to" />
-      </div>
+      {/* ── Details Section ── */}
+      <FormSection title="Details" defaultOpen={true}>
+        <Inp label="Title" value={form.title} onChange={e=>f("title",e.target.value)} placeholder="Content title" />
+        <ProductSelector value={form.product} onChange={v=>f("product",v)} products={products} onManage={()=>setShowProductManager(true)} />
+        {showProductManager && <ProductManager products={products} setProducts={setProducts} onClose={()=>setShowProductManager(false)} />}
+        <Sel label="Content type / theme" options={TYPE_OPTIONS} value={form.type} onChange={e=>f("type",e.target.value)} />
 
-      <Txt label="Draft copy / caption" rows={3} value={form.draftCopy} onChange={e=>f("draftCopy",e.target.value)} placeholder="Paste your draft caption or copy here..." />
-      <Txt label="Notes" value={form.notes} onChange={e=>f("notes",e.target.value)} placeholder="Production notes, links, angles..." />
+        {form.type && INTENT_BUCKET[form.type] && (() => {
+          const bucket = INTENT_BUCKET[form.type];
+          const meta = INTENT_META[bucket];
+          return (
+            <div className="mb-3 -mt-1 flex items-center gap-1.5">
+              <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: meta.color + "18", color: meta.color }}>
+                {meta.label}
+              </span>
+              <span className="text-xs text-stone-300">{bucket === "culture" ? "70%" : bucket === "brand" ? "20%" : "10%"} bucket</span>
+            </div>
+          );
+        })()}
 
-      {/* ── Images ── */}
-      <div className="mb-3">
-        <div className="flex items-center justify-between mb-1">
-          <label className="block text-sm font-medium text-stone-600">
-            {isInstagramPrimary ? "Photos / Carousel" : "Google Drive image"}
-          </label>
-          {isInstagramPrimary && (
-            <span className="text-xs text-stone-400">{(form.driveUrls||[]).filter(u=>u).length} image{(form.driveUrls||[]).filter(u=>u).length !== 1 ? "s" : ""}</span>
-          )}
-        </div>
+        <FormatPicker value={form.format||FORMAT_OPTIONS[0]} onChange={v=>f("format",v)} />
+        <ChannelPicker selected={form.channels} onChange={v=>f("channels",v)} />
+      </FormSection>
 
-        {isInstagramPrimary ? (
-          /* ── Multi-image for Instagram ── */
-          <div>
-            {(form.driveUrls||[]).map((url, i) => (
-              <div key={i} className="mb-2">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-semibold text-stone-400 w-5">#{i+1}</span>
-                  <input
-                    value={url}
-                    onChange={e => updateDriveUrl(i, e.target.value)}
-                    placeholder="Paste Drive share link"
-                    className="flex-1 border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#F05881]/40"
-                  />
-                  <div className="flex gap-1 shrink-0">
-                    <button type="button" onClick={()=>moveDriveUrl(i,-1)} disabled={i===0}
-                      className="text-stone-300 hover:text-stone-500 disabled:opacity-30 text-sm px-1">↑</button>
-                    <button type="button" onClick={()=>moveDriveUrl(i,1)} disabled={i===(form.driveUrls||[]).length-1}
-                      className="text-stone-300 hover:text-stone-500 disabled:opacity-30 text-sm px-1">↓</button>
-                    <button type="button" onClick={()=>removeDriveUrl(i)}
-                      className="text-stone-300 hover:text-red-400 text-sm px-1">✕</button>
-                  </div>
-                </div>
-                {url && (
-                  <img src={driveThumb(url)} alt={`preview ${i+1}`}
-                    className="ml-7 w-24 h-24 rounded-lg object-cover border border-stone-100"
-                    onError={e=>e.target.style.display="none"} />
-                )}
-              </div>
-            ))}
-            <button type="button" onClick={addDriveUrl}
-              className="text-xs font-medium px-3 py-1.5 rounded-lg border border-dashed border-stone-300 text-stone-400 hover:border-[#F05881] hover:text-[#F05881] transition-colors w-full mt-1">
-              + Add image
-            </button>
-            {(form.driveUrls||[]).length > 1 && (
-              <p className="text-xs text-stone-300 mt-1">First image is the cover. Reorder with ↑↓.</p>
-            )}
-          </div>
-        ) : (
-          /* ── Single image for non-Instagram ── */
-          <div>
-            <input value={(form.driveUrls||[])[0]||form.driveUrl||""} onChange={e=>{f("driveUrls",[e.target.value]);f("driveUrl",e.target.value);}}
-              placeholder="Paste Drive share link"
-              className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#F05881]/40" />
-            {((form.driveUrls||[])[0]||form.driveUrl) && (
-              <img src={driveThumb((form.driveUrls||[])[0]||form.driveUrl)} alt="preview"
-                className="mt-2 w-full rounded-lg object-cover" style={{maxHeight:160}} onError={e=>e.target.style.display="none"} />
-            )}
+      {/* ── Scheduling Section ── */}
+      <FormSection title="Scheduling & Assignment" defaultOpen={true}>
+        <StagePicker value={form.stage} onChange={v=>f("stage",v)} />
+        {!lockCampaignId && campaigns.length>0 && (
+          <div className="mb-3">
+            <label className="block text-sm font-medium text-stone-600 mb-1">Link to Campaign</label>
+            <select value={form.campaignId} onChange={e=>f("campaignId",e.target.value)}
+              className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none bg-white focus:ring-2 focus:ring-[#F05881]/40">
+              <option value="">No campaign</option>
+              {campaigns.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
           </div>
         )}
-        <p className="text-xs text-stone-300 mt-1">Files must be "Anyone with the link can view"</p>
-      </div>
+        {linkedCampaign?.keyMessage && (
+          <div className="mb-3 p-3 rounded-lg border text-xs" style={{background:"#fff0f4",borderColor:"#fa8f9c"}}>
+            <p className="font-semibold mb-1" style={{color:"#F05881"}}>↗ {linkedCampaign.name}</p>
+            <p className="text-stone-600">{linkedCampaign.keyMessage}</p>
+          </div>
+        )}
+        <Inp label="Scheduled date" type="date" value={form.date} onChange={e=>f("date",e.target.value)} />
+        {form.date && (() => {
+          const phase = getPhaseForDate(form.date);
+          return phase ? (
+            <div className="mb-3 -mt-1">
+              <PhaseTag dateStr={form.date} />
+            </div>
+          ) : null;
+        })()}
+        <div className="mb-3">
+          <AssigneeSelector value={form.assigneeId||null} onChange={v=>f("assigneeId",v)} label="Assign to" />
+        </div>
+      </FormSection>
+
+      {/* ── Copy & Notes Section ── */}
+      <FormSection title="Copy & Notes" defaultOpen={!!initial?.id}>
+        <Txt label="Draft copy / caption" rows={3} value={form.draftCopy} onChange={e=>f("draftCopy",e.target.value)} placeholder="Paste your draft caption or copy here..." />
+        <Txt label="Notes" value={form.notes} onChange={e=>f("notes",e.target.value)} placeholder="Production notes, links, angles..." />
+      </FormSection>
+
+      {/* ── Media Section ── */}
+      <FormSection title="Media" defaultOpen={!!initial?.driveUrl || !!(initial?.driveUrls?.length)}>
+        <div className="mb-3">
+          <div className="flex items-center justify-between mb-1">
+            <label className="block text-sm font-medium text-stone-600">
+              {isInstagramPrimary ? "Photos / Carousel" : "Google Drive image"}
+            </label>
+            {isInstagramPrimary && (
+              <span className="text-xs text-stone-400">{(form.driveUrls||[]).filter(u=>u).length} image{(form.driveUrls||[]).filter(u=>u).length !== 1 ? "s" : ""}</span>
+            )}
+          </div>
+
+          {isInstagramPrimary ? (
+            <div>
+              {(form.driveUrls||[]).map((url, i) => (
+                <div key={i} className="mb-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-semibold text-stone-400 w-5">#{i+1}</span>
+                    <input
+                      value={url}
+                      onChange={e => updateDriveUrl(i, e.target.value)}
+                      placeholder="Paste Drive share link"
+                      className="flex-1 border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#F05881]/40"
+                    />
+                    <div className="flex gap-1 shrink-0">
+                      <button type="button" onClick={()=>moveDriveUrl(i,-1)} disabled={i===0}
+                        className="text-stone-300 hover:text-stone-500 disabled:opacity-30 text-sm px-1">↑</button>
+                      <button type="button" onClick={()=>moveDriveUrl(i,1)} disabled={i===(form.driveUrls||[]).length-1}
+                        className="text-stone-300 hover:text-stone-500 disabled:opacity-30 text-sm px-1">↓</button>
+                      <button type="button" onClick={()=>removeDriveUrl(i)}
+                        className="text-stone-300 hover:text-red-400 text-sm px-1">✕</button>
+                    </div>
+                  </div>
+                  {url && (
+                    <img src={driveThumb(url)} alt={`preview ${i+1}`}
+                      className="ml-7 w-24 h-24 rounded-lg object-cover border border-stone-100"
+                      onError={e=>e.target.style.display="none"} />
+                  )}
+                </div>
+              ))}
+              <button type="button" onClick={addDriveUrl}
+                className="text-xs font-medium px-3 py-1.5 rounded-lg border border-dashed border-stone-300 text-stone-400 hover:border-[#F05881] hover:text-[#F05881] transition-colors w-full mt-1">
+                + Add image
+              </button>
+              {(form.driveUrls||[]).length > 1 && (
+                <p className="text-xs text-stone-300 mt-1">First image is the cover. Reorder with ↑↓.</p>
+              )}
+            </div>
+          ) : (
+            <div>
+              <input value={(form.driveUrls||[])[0]||form.driveUrl||""} onChange={e=>{f("driveUrls",[e.target.value]);f("driveUrl",e.target.value);}}
+                placeholder="Paste Drive share link"
+                className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#F05881]/40" />
+              {((form.driveUrls||[])[0]||form.driveUrl) && (
+                <img src={driveThumb((form.driveUrls||[])[0]||form.driveUrl)} alt="preview"
+                  className="mt-2 w-full rounded-lg object-cover" style={{maxHeight:160}} onError={e=>e.target.style.display="none"} />
+              )}
+            </div>
+          )}
+          <p className="text-xs text-stone-300 mt-1">Files must be "Anyone with the link can view"</p>
+        </div>
+      </FormSection>
+
+      {/* ── Performance Metrics (Published only) ── */}
+      {form.stage === "Published" && (
+        <FormSection title="Performance Metrics" defaultOpen={false}>
+          <p className="text-xs text-stone-400 mb-3">Track engagement on published content.</p>
+          <div className="grid grid-cols-2 gap-3">
+            <Inp label="Likes" type="number" value={form.metrics?.likes || ""} onChange={e => f("metrics", { ...form.metrics, likes: e.target.value })} placeholder="0" />
+            <Inp label="Comments" type="number" value={form.metrics?.comments || ""} onChange={e => f("metrics", { ...form.metrics, comments: e.target.value })} placeholder="0" />
+            <Inp label="Saves" type="number" value={form.metrics?.saves || ""} onChange={e => f("metrics", { ...form.metrics, saves: e.target.value })} placeholder="0" />
+            <Inp label="Shares" type="number" value={form.metrics?.shares || ""} onChange={e => f("metrics", { ...form.metrics, shares: e.target.value })} placeholder="0" />
+          </div>
+        </FormSection>
+      )}
 
       <div className="flex gap-2 mt-4">
         <button onClick={save} style={{background:"#F05881"}} className="flex-1 hover:opacity-90 text-white py-2 rounded-lg font-medium text-sm">Save</button>
