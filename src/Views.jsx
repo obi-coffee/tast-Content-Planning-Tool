@@ -35,8 +35,8 @@ function ContentCard({ item, campaigns, onClick, compact, currentMember, comment
   const thumb = driveThumb(item.driveUrl);
   return (
     <>
-      <div onClick={onClick} className="bg-white rounded-xl border shadow-sm cursor-pointer hover:border-[#fa8f9c] transition-colors mb-2 overflow-hidden"
-        style={{ borderColor: selected ? '#F05881' : '#f5f5f4' }}>
+      <div onClick={onClick} className="bg-white rounded-xl border cursor-pointer hover:border-no2 transition-all mb-2 overflow-hidden"
+        style={{ borderColor: selected ? '#F05881' : '#e0dcd5' }}>
         {thumb && !compact && <img src={thumb} alt="" className="w-full object-cover" style={{height:100}} onError={e=>e.target.style.display="none"} />}
         <div className={compact?"p-2":"p-3"}>
           <div className="flex items-start gap-2">
@@ -46,29 +46,29 @@ function ContentCard({ item, campaigns, onClick, compact, currentMember, comment
                 className="mt-1 shrink-0 accent-[#F05881]" />
             )}
             <div className="flex-1 min-w-0">
-              <span className={`font-medium text-stone-800 ${compact?"text-xs":"text-sm"}`}>{item.title}</span>
-              {!compact && item.product && <p className="text-xs text-stone-400 mt-0.5">{item.product}</p>}
+              <span className={`text-rich-black ${compact?"text-xs font-medium":"text-sm font-semibold"}`}>{item.title}</span>
+              {!compact && item.product && <p className="text-xs text-rich-black/40 mt-0.5">{item.product}</p>}
             </div>
             {commentCount > 0 && <CommentBadge count={commentCount} onClick={() => setShowComments(true)} />}
           </div>
-          {!compact && campaign && <div className="mt-1.5"><span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{background:"#fff0f4",color:"#F05881"}}>↗ {campaign.name}</span></div>}
-          {!compact && campaign?.keyMessage && <p className="text-xs text-stone-400 mt-1 line-clamp-1 italic">"{campaign.keyMessage}"</p>}
-          {!compact && item.draftCopy && <p className="text-xs text-stone-500 mt-1 line-clamp-2 border-l-2 pl-2 border-stone-200">{item.draftCopy}</p>}
+          {!compact && campaign && <div className="mt-1.5"><span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{background:"#F0588118",color:"#F05881"}}>&#8599; {campaign.name}</span></div>}
+          {!compact && campaign?.keyMessage && <p className="text-xs text-rich-black/40 mt-1 line-clamp-1 italic font-arizona">"{campaign.keyMessage}"</p>}
+          {!compact && item.draftCopy && <p className="text-xs text-rich-black/40 mt-1 line-clamp-2 border-l-2 pl-2 border-rich-black/10">{item.draftCopy}</p>}
           <div className={`flex flex-wrap gap-1 ${compact?"mt-1":"mt-2"}`}>
             {!compact && <Tag label={item.type} colorClass={TYPE_COLORS[item.type]||TYPE_COLORS["Other"]} />}
-            {channels.slice(0, compact?1:99).map(ch=><Tag key={ch} label={ch} colorClass="bg-stone-100 text-stone-500" />)}
-            {compact && channels.length>1 && <span className="text-xs text-stone-300">+{channels.length-1}</span>}
+            {channels.slice(0, compact?1:99).map(ch=><Tag key={ch} label={ch} colorClass="bg-rich-black/5 text-rich-black/40" />)}
+            {compact && channels.length>1 && <span className="text-xs text-rich-black/40/50">+{channels.length-1}</span>}
           </div>
-          {item.date && <p className="text-xs text-stone-300 mt-1">{item.date}</p>}
+          {item.date && <p className="text-xs text-rich-black/40/60 mt-1">{item.date}</p>}
           {!compact && (
             <div className="flex items-center justify-between mt-2">
               {item.assigneeId && <Avatar memberId={item.assigneeId} size={18} />}
               <button
                 onClick={e=>{e.stopPropagation();setShowComments(true);}}
-                className="text-xs text-stone-300 hover:text-[#F05881] transition-colors ml-auto flex items-center gap-1"
+                className="text-xs text-rich-black/40/50 hover:text-pink transition-colors ml-auto flex items-center gap-1"
                 title="Comments"
               >
-                💬 Comments
+                Comments
               </button>
             </div>
           )}
@@ -213,16 +213,16 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
   return (
     <div>
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-        <h2 className="text-lg font-semibold text-stone-800">Content Pipeline</h2>
+        <h2 className="font-inter text-xl font-bold text-rich-black" style={{ fontWeight: 400 }}>Content Pipeline</h2>
         <div className="flex items-center gap-2 flex-wrap">
           {/* Bulk / CSV controls */}
           <button onClick={() => { setBulkMode(!bulkMode); if (bulkMode) clearSelection(); }}
             className="text-xs px-3 py-1.5 rounded-lg border font-medium transition-all"
-            style={bulkMode ? { background: "#F05881", color: "white", borderColor: "#F05881" } : { borderColor: "#e7e5e4", color: "#78716c" }}>
+            style={bulkMode ? { background: "#F05881", color: "white", borderColor: "#F05881" } : { borderColor: "#e0dcd5", color: "#757575" }}>
             {bulkMode ? "Cancel select" : "Select"}
           </button>
           <button onClick={() => exportItemsToCSV(filteredItems)}
-            className="text-xs px-3 py-1.5 rounded-lg border border-stone-200 text-stone-500 hover:text-stone-700 font-medium">
+            className="text-xs px-3 py-1.5 rounded-lg border border-rich-black/10 text-rich-black/40 hover:text-rich-black font-medium">
             Export CSV
           </button>
           <button onClick={handleImportCSV}
@@ -314,7 +314,7 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
                 onDragLeave={()=>setDragOver(null)}
                 onDrop={()=>{if(dragItem&&dragItem.stage!==stage)moveStage(dragItem,stage);setDragItem(null);setDragOver(null);}}
                 className="flex-shrink-0 rounded-xl p-3 transition-all"
-                style={{width:isMobile?160:230,background:isOver?"#fff0f4":"#f7f6f5",border:isOver?"2px dashed #F05881":"2px solid transparent"}}>
+                style={{width:isMobile?160:230,background:isOver?"#F0588110":"#f5f2ed",border:isOver?"2px dashed #F05881":"2px solid transparent"}}>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full" style={{background:STAGE_META[stage].color}} />
@@ -466,7 +466,7 @@ export function Calendar({ items, addItem, updateItem, deleteItem, campaigns, pr
     return (
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-stone-800">Calendar</h2>
+          <h2 className="font-inter text-xl font-bold text-rich-black">Calendar</h2>
           <button onClick={()=>openNew()} style={{background:"#F05881"}} className="hover:opacity-90 text-white text-sm px-4 py-3 rounded-lg font-medium">+ Add</button>
         </div>
         {Object.keys(grouped).length===0 && undated.length===0 && <p className="text-stone-400 text-sm">No content scheduled yet.</p>}
@@ -544,7 +544,7 @@ export function Calendar({ items, addItem, updateItem, deleteItem, campaigns, pr
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className="flex items-center gap-3">
           <button onClick={view==="week"?prevWeek:prevMonth} className="text-stone-400 hover:text-stone-700 text-lg">‹</button>
-          <h2 className="text-lg font-semibold text-stone-800">
+          <h2 className="font-inter text-xl font-bold text-rich-black">
             {view==="week"
               ? `${weekDays[0].toLocaleDateString("en-US",{month:"short",day:"numeric"})} – ${weekDays[6].toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}`
               : `${view==="gap"?"Gap — ":""}${MONTH_NAMES[month]} ${year}`}
@@ -659,7 +659,7 @@ export function BrandVoice({ voice, setVoice }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-stone-800">Brand Voice & Guidelines</h2>
+        <h2 className="font-inter text-xl font-bold text-rich-black">Brand Voice & Guidelines</h2>
         {!editing
           ? <button onClick={()=>{setDraft(voice);setEditing(true);}} style={{color:"#F05881"}} className="text-sm hover:opacity-70 font-medium">Edit</button>
           : <div className="flex gap-2">
@@ -711,7 +711,7 @@ export function Captions({ brandVoice }) {
 
   return (
     <div>
-      <h2 className="text-lg font-semibold text-stone-800 mb-1">Caption Generator</h2>
+      <h2 className="font-inter text-xl font-bold text-rich-black mb-1">Caption Generator</h2>
       <p className="text-sm text-stone-400 mb-4">AI-drafted captions grounded in your brand voice.</p>
       <div className="bg-white rounded-xl border border-stone-100 p-4 shadow-sm mb-4">
         <Sel label="Channel" options={CHANNEL_OPTIONS} value={channel} onChange={e=>setChannel(e.target.value)} />

@@ -27,7 +27,7 @@ function ToastItem({ toast, onDismiss }) {
   const typeStyles = {
     success: { bg: '#f0fdf4', border: '#86efac', color: '#166534', icon: '\u2713' },
     error:   { bg: '#fef2f2', border: '#fca5a5', color: '#991b1b', icon: '!' },
-    info:    { bg: '#fff0f4', border: '#fa8f9c', color: '#a12f52', icon: '\u2139' },
+    info:    { bg: '#fff0f4', border: '#F287B7', color: '#A23053', icon: '\u2139' },
   }
   const s = typeStyles[toast.type] || typeStyles.info
 

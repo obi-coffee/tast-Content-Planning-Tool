@@ -9,7 +9,7 @@ const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct"
 // ── Small stat card ────────────────────────────────────────────────────────
 function StatCard({ label, value, sub, color = "#1a1a1a", accent }) {
   return (
-    <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 flex flex-col gap-1">
+    <div className="bg-white rounded-2xl border border-rich-black/8 p-4 flex flex-col gap-1">
       <p className="text-xs text-stone-400 font-medium uppercase tracking-wider">{label}</p>
       <p className="text-3xl font-bold leading-none" style={{ color: color }}>{value}</p>
       {sub && <p className="text-xs text-stone-400 mt-0.5">{sub}</p>}
@@ -252,7 +252,7 @@ function GapDetector({ items }) {
             style={{ background: s.bg, borderColor: s.border }}>
             <div className="w-2 h-2 rounded-full mt-1.5 shrink-0" style={{ background: s.dot }} />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-stone-800">{g.label}</p>
+              <p className="text-sm font-semibold text-rich-black">{g.label}</p>
               <p className="text-xs text-stone-500 mt-0.5">{g.detail}</p>
               {g.items.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-2">
@@ -383,7 +383,7 @@ function SmartRecommendations({ items }) {
           <div key={i} className="rounded-xl border px-4 py-3 flex items-start gap-3" style={{ background: s.bg, borderColor: s.border }}>
             <div className="w-2 h-2 rounded-full mt-1.5 shrink-0" style={{ background: s.dot }} />
             <div>
-              <p className="text-sm font-semibold text-stone-800">{r.message}</p>
+              <p className="text-sm font-semibold text-rich-black">{r.message}</p>
               <p className="text-xs text-stone-500 mt-0.5">{r.detail}</p>
             </div>
           </div>
@@ -543,7 +543,7 @@ export function Analytics({ items, campaigns, updateItem }) {
     <div>
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h2 className="text-lg font-semibold text-stone-800">Analytics</h2>
+          <h2 className="font-inter text-xl font-bold text-rich-black">Analytics</h2>
           <p className="text-xs text-stone-400 mt-0.5">Pipeline health · posting cadence · gaps</p>
         </div>
       </div>
@@ -557,10 +557,10 @@ export function Analytics({ items, campaigns, updateItem }) {
       </div>
 
       {/* ── 70/20/10 Ratio Tracker ── */}
-      <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 mb-5">
+      <div className="bg-white rounded-2xl border border-rich-black/8 p-4 mb-5">
         <div className="flex items-start justify-between mb-3">
           <div>
-            <p className="text-sm font-semibold text-stone-800">Content ratio</p>
+            <p className="text-sm font-semibold text-rich-black">Content ratio</p>
             <p className="text-xs text-stone-400">Target: 70% culture · 20% brand · 10% conversion</p>
           </div>
           {intentTotal === 0 && <span className="text-xs text-stone-300">No themed posts yet</span>}
@@ -618,9 +618,9 @@ export function Analytics({ items, campaigns, updateItem }) {
       </div>
 
       {/* ── Phase Progress ── */}
-      <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 mb-5">
+      <div className="bg-white rounded-2xl border border-rich-black/8 p-4 mb-5">
         <div className="mb-3">
-          <p className="text-sm font-semibold text-stone-800">Phase progress</p>
+          <p className="text-sm font-semibold text-rich-black">Phase progress</p>
           <p className="text-xs text-stone-400">36-week plan · Feb 23 → Oct 26, 2026</p>
         </div>
         <div className="space-y-3">
@@ -635,7 +635,7 @@ export function Analytics({ items, campaigns, updateItem }) {
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold text-stone-800">{p.name}</p>
+                      <p className="text-sm font-semibold text-rich-black">{p.name}</p>
                       {p.isActive && (
                         <span className="text-xs px-1.5 py-0.5 rounded-full font-semibold" style={{ background: p.color, color: "white" }}>Active</span>
                       )}
@@ -672,10 +672,10 @@ export function Analytics({ items, campaigns, updateItem }) {
 
       <div className="grid md:grid-cols-2 gap-5 mb-5">
         {/* ── Cadence ── */}
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+        <div className="bg-white rounded-2xl border border-rich-black/8 p-4">
           <div className="flex items-start justify-between mb-3">
             <div>
-              <p className="text-sm font-semibold text-stone-800">Monthly cadence</p>
+              <p className="text-sm font-semibold text-rich-black">Monthly cadence</p>
               <p className="text-xs text-stone-400">Last 6 months</p>
             </div>
             <Sparkline data={sparkData} width={80} height={28} />
@@ -688,8 +688,8 @@ export function Analytics({ items, campaigns, updateItem }) {
         </div>
 
         {/* ── Gap detector ── */}
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
-          <p className="text-sm font-semibold text-stone-800 mb-1">Pipeline health</p>
+        <div className="bg-white rounded-2xl border border-rich-black/8 p-4">
+          <p className="text-sm font-semibold text-rich-black mb-1">Pipeline health</p>
           <p className="text-xs text-stone-400 mb-3">Overdue, stale, and gaps</p>
           <GapDetector items={items} />
         </div>
@@ -697,8 +697,8 @@ export function Analytics({ items, campaigns, updateItem }) {
 
       <div className="grid md:grid-cols-2 gap-5 mb-5">
         {/* ── By channel ── */}
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
-          <p className="text-sm font-semibold text-stone-800 mb-3">By channel</p>
+        <div className="bg-white rounded-2xl border border-rich-black/8 p-4">
+          <p className="text-sm font-semibold text-rich-black mb-3">By channel</p>
           {byCh.map(ch => (
             <Bar key={ch.label} label={ch.label} value={ch.count} max={maxCh} count={ch.count}
               color={ch.label === "Instagram" ? PINK : ch.label === "Email" ? "#a12f52" : ch.label === "Instagram Reels" ? "#ef4056" : "#fa8f9c"} />
@@ -706,8 +706,8 @@ export function Analytics({ items, campaigns, updateItem }) {
         </div>
 
         {/* ── By theme ── */}
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
-          <p className="text-sm font-semibold text-stone-800 mb-3">By theme</p>
+        <div className="bg-white rounded-2xl border border-rich-black/8 p-4">
+          <p className="text-sm font-semibold text-rich-black mb-3">By theme</p>
           {byType.length === 0
             ? <p className="text-xs text-stone-300">No content yet</p>
             : byType.map(t => <Bar key={t.label} label={t.label} value={t.count} max={maxType} count={t.count}
@@ -717,15 +717,15 @@ export function Analytics({ items, campaigns, updateItem }) {
 
       <div className="grid md:grid-cols-2 gap-5 mb-5">
         {/* ── Posting heatmap ── */}
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
-          <p className="text-sm font-semibold text-stone-800 mb-1">Publishing heatmap</p>
+        <div className="bg-white rounded-2xl border border-rich-black/8 p-4">
+          <p className="text-sm font-semibold text-rich-black mb-1">Publishing heatmap</p>
           <p className="text-xs text-stone-400 mb-3">Published posts · last 12 weeks</p>
           <PostingHeatmap items={items} />
         </div>
 
         {/* ── Team workload ── */}
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
-          <p className="text-sm font-semibold text-stone-800 mb-3">Team workload</p>
+        <div className="bg-white rounded-2xl border border-rich-black/8 p-4">
+          <p className="text-sm font-semibold text-rich-black mb-3">Team workload</p>
           {byMember.length === 0
             ? <p className="text-xs text-stone-300">No items assigned yet</p>
             : byMember.map(({ member: m, count, published: pub }) => (
@@ -748,8 +748,8 @@ export function Analytics({ items, campaigns, updateItem }) {
 
       {/* ── Campaign health ── */}
       {campaignStats.length > 0 && (
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 mb-5">
-          <p className="text-sm font-semibold text-stone-800 mb-3">Campaign health</p>
+        <div className="bg-white rounded-2xl border border-rich-black/8 p-4 mb-5">
+          <p className="text-sm font-semibold text-rich-black mb-3">Campaign health</p>
           <div className="space-y-3">
             {campaignStats.map(c => {
               const pct = c.total > 0 ? (c.published / c.total) * 100 : 0;
@@ -774,15 +774,15 @@ export function Analytics({ items, campaigns, updateItem }) {
 
       <div className="grid md:grid-cols-2 gap-5 mb-5">
         {/* ── Performance Metrics ── */}
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
-          <p className="text-sm font-semibold text-stone-800 mb-1">Performance tracking</p>
+        <div className="bg-white rounded-2xl border border-rich-black/8 p-4">
+          <p className="text-sm font-semibold text-rich-black mb-1">Performance tracking</p>
           <p className="text-xs text-stone-400 mb-3">Engagement metrics on published content</p>
           <PerformanceMetrics items={items} />
         </div>
 
         {/* ── Smart Recommendations ── */}
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
-          <p className="text-sm font-semibold text-stone-800 mb-1">Smart recommendations</p>
+        <div className="bg-white rounded-2xl border border-rich-black/8 p-4">
+          <p className="text-sm font-semibold text-rich-black mb-1">Smart recommendations</p>
           <p className="text-xs text-stone-400 mb-3">AI-powered suggestions based on your content</p>
           <SmartRecommendations items={items} />
         </div>

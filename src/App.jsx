@@ -99,16 +99,16 @@ function AppInner() {
     <>
       {showPicker && <TeamPicker onChoose={chooseMember} />}
 
-      <div className="min-h-screen bg-stone-50 font-sans">
+      <div className="min-h-screen bg-london-fog font-inter">
         {/* ── Header ── */}
-        <div className="bg-white border-b border-stone-100 sticky top-0 z-40">
-          <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div>
-              <span className="font-bold text-stone-800 text-lg tracking-tight">tast</span>
-              <span className="text-stone-400 text-sm ml-2">content ops</span>
+        <div className="bg-london-fog border-b border-rich-black/10 sticky top-0 z-40">
+          <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-bold text-rich-black tracking-tight">tast</span>
+              <span className="text-rich-black/40 text-sm font-mono uppercase tracking-wider text-[10px]">content ops</span>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-xs text-stone-300 hidden sm:block">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-rich-black/30 hidden sm:block">
                 {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
               </span>
               {member && (
@@ -124,23 +124,22 @@ function AppInner() {
             <div className="flex gap-0.5 items-end">
               {TAB_GROUPS.map((group) => (
                 <div key={group.label} className="flex items-end">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-300 px-1.5 pb-2.5 hidden sm:block select-none">
+                  <span className="font-mono text-[9px] uppercase tracking-widest text-rich-black/25 px-1.5 pb-2.5 hidden sm:block select-none">
                     {group.label}
                   </span>
                   {group.tabs.map((t) => (
                     <button key={t.id} onClick={() => setActiveTab(t.id)}
-                      className="text-sm px-3 py-2.5 border-b-2 whitespace-nowrap font-medium transition-colors"
+                      className="text-sm px-3 py-2.5 border-b-2 whitespace-nowrap transition-colors font-inter"
                       style={activeTab === t.id
-                        ? { borderColor: "#F05881", color: "#F05881" }
-                        : { borderColor: "transparent", color: "#a8a29e" }}>
+                        ? { borderColor: "#F05881", color: "#F05881", fontWeight: 600 }
+                        : { borderColor: "transparent", color: "#1A1A1A80", fontWeight: 500 }}>
                       {t.label}
                       {t.id === "pipeline" && items.length > 0 && (
-                        <span className="ml-1 text-xs px-1.5 py-0.5 rounded-full" style={{ background: "#fff0f4", color: "#F05881" }}>{items.length}</span>
+                        <span className="ml-1.5 font-mono text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: "#F0588115", color: "#F05881" }}>{items.length}</span>
                       )}
                     </button>
                   ))}
-                  {/* Subtle divider between groups */}
-                  <div className="w-px h-5 bg-stone-100 mx-1 mb-2 hidden sm:block" />
+                  <div className="w-px h-4 mx-1.5 mb-2.5 hidden sm:block bg-rich-black/8" />
                 </div>
               ))}
             </div>
@@ -152,8 +151,8 @@ function AppInner() {
           {loading ? (
             <div className="flex items-center justify-center py-20">
               <div className="text-center">
-                <div className="w-8 h-8 rounded-full border-2 border-stone-200 border-t-[#F05881] animate-spin mx-auto mb-3" />
-                <p className="text-sm text-stone-400">Loading...</p>
+                <div className="w-8 h-8 rounded-full border-2 border-rich-black/10 border-t-pink animate-spin mx-auto mb-3" />
+                <p className="text-xs font-mono uppercase tracking-wider text-rich-black/30">Loading...</p>
               </div>
             </div>
           ) : (

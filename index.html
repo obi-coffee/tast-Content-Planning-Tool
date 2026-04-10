@@ -3,8 +3,50 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>tāst content ops</title>
+    <title>tast content ops</title>
+    <!-- Inter Variable — the UI workhorse -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              // ── tast core palette ──────────────────────
+              'rich-black': '#1A1A1A',
+              'london-fog': '#FAF9F6',
+              'no2': '#F287B7',
+              'pink': '#F05881',
+              'no3': '#EF4056',
+              'raspberry': '#A23053',
+            },
+            fontFamily: {
+              // Inter Variable — Headlines, UI, navigation
+              inter: ['Inter', 'system-ui', 'sans-serif'],
+              // ABC Arizona Text fallback — Supporting headlines, editorial
+              arizona: ['Georgia', '"Times New Roman"', 'serif'],
+              // Antartican Mono fallback — Data, labels, captions
+              mono: ['"SF Mono"', '"Fira Code"', '"Cascadia Code"', 'monospace'],
+              // Times New Roman — Long-form body copy
+              body: ['"Times New Roman"', 'Georgia', 'serif'],
+            },
+          },
+        },
+      }
+    </script>
+    <style>
+      body {
+        background: #FAF9F6;
+        font-family: 'Inter', system-ui, sans-serif;
+        color: #1A1A1A;
+      }
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: #e0dcd5; border-radius: 3px; }
+      ::-webkit-scrollbar-thumb:hover { background: #c5c0b8; }
+    </style>
   </head>
   <body>
     <div id="root"></div>
