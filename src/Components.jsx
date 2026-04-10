@@ -465,6 +465,7 @@ export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, loc
       stage:"Idea", campaignId:"", date:"", notes:"", product:"",
       draftCopy:"", driveUrl:"", driveUrls:[], owner:"", assigneeId:"", seq:0,
       metrics: { likes: "", comments: "", saves: "", shares: "" },
+      emailSubject:"", emailPreview:"", emailBody:"", emailCta:"",
     };
     if (!initial) return base;
     const channels = normalizeChannels(initial.channels);
@@ -490,6 +491,7 @@ export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, loc
   };
 
   const isInstagramPrimary = normalizeChannels(form.channels).primary === "Instagram";
+  const isEmailPrimary = normalizeChannels(form.channels).primary === "Email";
 
   // Drive URL helpers
   const addDriveUrl = () => f("driveUrls", [...(form.driveUrls||[]), ""]);
@@ -584,11 +586,21 @@ export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, loc
         </div>
       </FormSection>
 
-      {/* ── Copy & Notes Section ── */}
-      <FormSection title="Copy & Notes" defaultOpen={!!initial?.id}>
-        <Txt label="Draft copy / caption" rows={3} value={form.draftCopy} onChange={e=>f("draftCopy",e.target.value)} placeholder="Paste your draft caption or copy here..." />
-        <Txt label="Notes" value={form.notes} onChange={e=>f("notes",e.target.value)} placeholder="Production notes, links, angles..." />
-      </FormSection>
+      {/* ── Copy & Notes Section (email-aware) ── */}
+      {isEmailPrimary ? (
+        <FormSection title="Email Content" defaultOpen={true}>
+          <Inp label="Subject line" value={form.emailSubject} onChange={e=>f("emailSubject",e.target.value)} placeholder="e.g. The story behind our newest roast" />
+          <Inp label="Preview text" value={form.emailPreview} onChange={e=>f("emailPreview",e.target.value)} placeholder="Text shown in inbox before opening..." />
+          <Txt label="Body" rows={6} value={form.emailBody} onChange={e=>f("emailBody",e.target.value)} placeholder="Write or paste your email body copy here..." />
+          <Inp label="Call to action" value={form.emailCta} onChange={e=>f("emailCta",e.target.value)} placeholder="e.g. Shop the drop, Join the waitlist" />
+          <Txt label="Notes" value={form.notes} onChange={e=>f("notes",e.target.value)} placeholder="Production notes, links, angles..." />
+        </FormSection>
+      ) : (
+        <FormSection title="Copy & Notes" defaultOpen={!!initial?.id}>
+          <Txt label="Draft copy / caption" rows={3} value={form.draftCopy} onChange={e=>f("draftCopy",e.target.value)} placeholder="Paste your draft caption or copy here..." />
+          <Txt label="Notes" value={form.notes} onChange={e=>f("notes",e.target.value)} placeholder="Production notes, links, angles..." />
+        </FormSection>
+      )}
 
       {/* ── Media Section ── */}
       <FormSection title="Media" defaultOpen={!!initial?.driveUrl || !!(initial?.driveUrls?.length)}>

@@ -22,30 +22,40 @@ function channelsFromDb(raw) {
 
 function toDb(item) {
   if (!item) return item
-  const { draftCopy, driveUrl, driveUrls, campaignId, assigneeId, channels, metrics, ...rest } = item
+  const { draftCopy, driveUrl, driveUrls, campaignId, assigneeId, channels, metrics,
+          emailSubject, emailPreview, emailBody, emailCta, ...rest } = item
   const out = { ...rest }
-  if (draftCopy  !== undefined) out.draft_copy  = draftCopy  || null
-  if (driveUrl   !== undefined) out.drive_url   = driveUrl   || null
-  if (driveUrls  !== undefined) out.drive_urls  = driveUrls
-  if (campaignId !== undefined) out.campaign_id = campaignId || null
-  if (assigneeId !== undefined) out.assignee_id = assigneeId || null
-  if (channels   !== undefined) out.channels    = channelsToDb(channels)
-  if (metrics    !== undefined) out.metrics     = metrics
+  if (draftCopy    !== undefined) out.draft_copy    = draftCopy  || null
+  if (driveUrl     !== undefined) out.drive_url     = driveUrl   || null
+  if (driveUrls    !== undefined) out.drive_urls    = driveUrls
+  if (campaignId   !== undefined) out.campaign_id   = campaignId || null
+  if (assigneeId   !== undefined) out.assignee_id   = assigneeId || null
+  if (channels     !== undefined) out.channels      = channelsToDb(channels)
+  if (metrics      !== undefined) out.metrics       = metrics
+  if (emailSubject !== undefined) out.email_subject = emailSubject || null
+  if (emailPreview !== undefined) out.email_preview = emailPreview || null
+  if (emailBody    !== undefined) out.email_body    = emailBody || null
+  if (emailCta     !== undefined) out.email_cta     = emailCta || null
   return out
 }
 
 function fromDb(row) {
   if (!row) return row
-  const { draft_copy, drive_url, drive_urls, campaign_id, assignee_id, channels, metrics, ...rest } = row
+  const { draft_copy, drive_url, drive_urls, campaign_id, assignee_id, channels, metrics,
+          email_subject, email_preview, email_body, email_cta, ...rest } = row
   return {
     ...rest,
-    channels:   channelsFromDb(channels),
-    draftCopy:  draft_copy  ?? '',
-    driveUrl:   drive_url   ?? '',
-    driveUrls:  Array.isArray(drive_urls) ? drive_urls : [],
-    campaignId: campaign_id ?? '',
-    assigneeId: assignee_id ?? '',
-    metrics:    metrics || { likes: '', comments: '', saves: '', shares: '' },
+    channels:     channelsFromDb(channels),
+    draftCopy:    draft_copy    ?? '',
+    driveUrl:     drive_url     ?? '',
+    driveUrls:    Array.isArray(drive_urls) ? drive_urls : [],
+    campaignId:   campaign_id   ?? '',
+    assigneeId:   assignee_id   ?? '',
+    metrics:      metrics || { likes: '', comments: '', saves: '', shares: '' },
+    emailSubject: email_subject ?? '',
+    emailPreview: email_preview ?? '',
+    emailBody:    email_body    ?? '',
+    emailCta:     email_cta     ?? '',
   }
 }
 
