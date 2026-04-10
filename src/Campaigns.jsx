@@ -67,7 +67,7 @@ export function Campaigns({ campaigns, addCampaign, updateCampaign, deleteCampai
         <button onClick={()=>{setActive(null);setActiveTab("content");}} style={{color:"#F05881"}} className="text-sm hover:opacity-70 mb-4">← All Campaigns</button>
         <div className="flex items-start justify-between mb-2">
           <div>
-            <h2 className="font-serif text-2xl text-warm-text">{c.name}</h2>
+            <h2 className="font-inter text-2xl font-bold text-rich-black">{c.name}</h2>
             {c.dropDate && <p className="text-sm text-stone-400 mt-0.5">Drop: {c.dropDate}</p>}
             {channels.length>0 && <div className="flex gap-1 mt-1 flex-wrap">{channels.map(ch=><Tag key={ch} label={ch} colorClass="bg-stone-100 text-stone-500" />)}</div>}
           </div>
@@ -188,7 +188,7 @@ export function Campaigns({ campaigns, addCampaign, updateCampaign, deleteCampai
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-serif text-xl text-warm-text">Campaigns</h2>
+        <h2 className="font-inter text-xl font-bold text-rich-black">Campaigns</h2>
         <button onClick={()=>{setCampForm(emptyCamp);setShowCampForm(true);}} style={{background:"#F05881"}} className="hover:opacity-90 text-white text-sm px-4 py-2 rounded-lg font-medium">+ New Campaign</button>
       </div>
       {campaigns.length===0 && (
@@ -206,7 +206,7 @@ export function Campaigns({ campaigns, addCampaign, updateCampaign, deleteCampai
           const channels = flattenChannels(c.channels);
           return (
             <div key={c.id} onClick={()=>{setActive(c);setActiveTab("content");}}
-              className="bg-white rounded-xl border border-warm-border/60 p-4 cursor-pointer hover:border-brand-200 transition-colors">
+              className="bg-white rounded-xl border border-rich-black/8 p-4 cursor-pointer hover:border-no2 transition-colors">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <p className="font-medium text-stone-800 text-sm">{c.name}</p>

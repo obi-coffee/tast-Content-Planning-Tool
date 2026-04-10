@@ -128,10 +128,10 @@ export function Tag({ label, colorClass, style }) {
 export function Modal({ title, onClose, children }) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-end md:items-center justify-center z-50 md:p-4">
-      <div className="bg-cream w-full md:rounded-2xl md:max-w-lg rounded-t-2xl shadow-xl max-h-[92vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-5 border-b border-warm-divider">
-          <h2 className="font-serif text-warm-text text-xl" style={{ fontWeight: 400 }}>{title}</h2>
-          <button onClick={onClose} className="text-warm-muted hover:text-warm-text text-xl w-10 h-10 flex items-center justify-center">\u2715</button>
+      <div className="bg-london-fog w-full md:rounded-2xl md:max-w-lg rounded-t-2xl shadow-xl max-h-[92vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-5 border-b border-rich-black/10">
+          <h2 className="font-inter font-bold text-rich-black text-lg">{title}</h2>
+          <button onClick={onClose} className="text-rich-black/30 hover:text-rich-black text-xl w-10 h-10 flex items-center justify-center">\u2715</button>
         </div>
         <div className="p-5 pb-8">{children}</div>
       </div>
@@ -142,8 +142,8 @@ export function Modal({ title, onClose, children }) {
 export function Inp({ label, ...p }) {
   return (
     <div className="mb-3">
-      {label && <label className="block text-xs font-semibold text-warm-muted uppercase tracking-wide mb-1.5">{label}</label>}
-      <input className="w-full border border-warm-border rounded-lg px-3 py-3 md:py-2.5 text-sm text-warm-text bg-white focus:outline-none focus:ring-2 focus:ring-brand-300/30 focus:border-brand-300/50 transition-colors" {...p} />
+      {label && <label className="block font-mono text-[9px] uppercase tracking-widest text-rich-black/40 mb-1.5">{label}</label>}
+      <input className="w-full border border-rich-black/12 rounded-lg px-3 py-3 md:py-2.5 text-sm font-inter text-rich-black bg-white focus:outline-none focus:ring-2 focus:ring-pink/20 focus:border-pink/40 transition-colors" {...p} />
     </div>
   );
 }
@@ -151,8 +151,8 @@ export function Inp({ label, ...p }) {
 export function Sel({ label, options, ...p }) {
   return (
     <div className="mb-3">
-      {label && <label className="block text-xs font-semibold text-warm-muted uppercase tracking-wide mb-1.5">{label}</label>}
-      <select className="w-full border border-warm-border rounded-lg px-3 py-3 md:py-2.5 text-sm text-warm-text bg-white focus:outline-none focus:ring-2 focus:ring-brand-300/30 focus:border-brand-300/50 transition-colors" {...p}>
+      {label && <label className="block font-mono text-[9px] uppercase tracking-widest text-rich-black/40 mb-1.5">{label}</label>}
+      <select className="w-full border border-rich-black/12 rounded-lg px-3 py-3 md:py-2.5 text-sm font-inter text-rich-black bg-white focus:outline-none focus:ring-2 focus:ring-pink/20 focus:border-pink/40 transition-colors" {...p}>
         {options.map(o => <option key={o}>{o}</option>)}
       </select>
     </div>
@@ -162,8 +162,8 @@ export function Sel({ label, options, ...p }) {
 export function Txt({ label, rows=4, ...p }) {
   return (
     <div className="mb-3">
-      {label && <label className="block text-xs font-semibold text-warm-muted uppercase tracking-wide mb-1.5">{label}</label>}
-      <textarea rows={rows} className="w-full border border-warm-border rounded-lg px-3 py-2.5 text-sm text-warm-text bg-white focus:outline-none focus:ring-2 focus:ring-brand-300/30 focus:border-brand-300/50 resize-y min-h-[60px] transition-colors" {...p} />
+      {label && <label className="block font-mono text-[9px] uppercase tracking-widest text-rich-black/40 mb-1.5">{label}</label>}
+      <textarea rows={rows} className="w-full border border-rich-black/12 rounded-lg px-3 py-2.5 text-sm font-body text-rich-black bg-white focus:outline-none focus:ring-2 focus:ring-pink/20 focus:border-pink/40 resize-y min-h-[60px] transition-colors" {...p} />
     </div>
   );
 }
@@ -333,12 +333,12 @@ export function PhaseTag({ dateStr, className = "" }) {
 export function EmptyState({ icon = "\u2217", title, description, actionLabel, onAction }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-cream-dark flex items-center justify-center text-2xl text-warm-muted/40 mb-4 font-serif">{icon}</div>
-      <p className="text-sm font-serif text-warm-text mb-1">{title}</p>
-      {description && <p className="text-xs text-warm-muted max-w-xs mb-4">{description}</p>}
+      <div className="w-14 h-14 rounded-2xl bg-rich-black/5 flex items-center justify-center text-2xl text-rich-black/20 mb-4">{icon}</div>
+      <p className="text-sm font-inter font-semibold text-rich-black mb-1">{title}</p>
+      {description && <p className="text-xs text-rich-black/40 max-w-xs mb-4">{description}</p>}
       {actionLabel && onAction && (
-        <button onClick={onAction} style={{ background: "#F05881" }}
-          className="text-sm text-white px-5 py-2.5 rounded-lg hover:opacity-90 transition-opacity">
+        <button onClick={onAction}
+          className="text-sm text-white px-5 py-2.5 rounded-lg bg-pink hover:opacity-90 transition-opacity font-inter font-medium">
           {actionLabel}
         </button>
       )}
@@ -370,7 +370,7 @@ export function FormSection({ title, defaultOpen = true, children }) {
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        className="flex items-center justify-between w-full py-2.5 text-xs font-semibold uppercase tracking-wider text-warm-muted hover:text-warm-text transition-colors border-b border-warm-divider/50 mb-2"
+        className="flex items-center justify-between w-full py-2.5 font-mono text-[9px] uppercase tracking-widest text-rich-black/35 hover:text-rich-black/60 transition-colors border-b border-rich-black/8 mb-2"
       >
         {title}
         <span className="text-sm transition-transform" style={{ transform: open ? 'rotate(0deg)' : 'rotate(-90deg)' }}>
