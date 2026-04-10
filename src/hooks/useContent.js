@@ -22,7 +22,7 @@ function channelsFromDb(raw) {
 
 function toDb(item) {
   if (!item) return item
-  const { draftCopy, driveUrl, driveUrls, campaignId, assigneeId, channels, ...rest } = item
+  const { draftCopy, driveUrl, driveUrls, campaignId, assigneeId, channels, metrics, ...rest } = item
   const out = { ...rest }
   if (draftCopy  !== undefined) out.draft_copy  = draftCopy  || null
   if (driveUrl   !== undefined) out.drive_url   = driveUrl   || null
@@ -30,12 +30,13 @@ function toDb(item) {
   if (campaignId !== undefined) out.campaign_id = campaignId || null
   if (assigneeId !== undefined) out.assignee_id = assigneeId || null
   if (channels   !== undefined) out.channels    = channelsToDb(channels)
+  if (metrics    !== undefined) out.metrics     = metrics
   return out
 }
 
 function fromDb(row) {
   if (!row) return row
-  const { draft_copy, drive_url, drive_urls, campaign_id, assignee_id, channels, ...rest } = row
+  const { draft_copy, drive_url, drive_urls, campaign_id, assignee_id, channels, metrics, ...rest } = row
   return {
     ...rest,
     channels:   channelsFromDb(channels),
@@ -44,6 +45,7 @@ function fromDb(row) {
     driveUrls:  Array.isArray(drive_urls) ? drive_urls : [],
     campaignId: campaign_id ?? '',
     assigneeId: assignee_id ?? '',
+    metrics:    metrics || { likes: '', comments: '', saves: '', shares: '' },
   }
 }
 

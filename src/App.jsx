@@ -6,24 +6,54 @@ import { InstagramGrid } from "./InstagramGrid.jsx";
 import { Analytics } from "./Analytics.jsx";
 import { useContent, useCampaigns, useProducts, useBrandVoice } from "./hooks/useContent.js";
 import { useTeamMember } from "./hooks/useTeamMember.js";
+import { useCommentCounts } from "./hooks/useCommentCounts.js";
 import TeamPicker from "./components/TeamPicker.jsx";
 import { Avatar } from "./components/Avatar.jsx";
+import { ToastProvider, useToast } from "./components/Toast.jsx";
 
-const TABS = ["Pipeline", "Calendar", "Campaigns", "Grid", "Analytics", "Brand Voice", "Captions"];
+// ── Tab groups for organized navigation ───────────────────────────────────
+const TAB_GROUPS = [
+  {
+    label: "Plan",
+    tabs: [
+      { id: "pipeline",  label: "Pipeline" },
+      { id: "calendar",  label: "Calendar" },
+      { id: "campaigns", label: "Campaigns" },
+    ],
+  },
+  {
+    label: "Create",
+    tabs: [
+      { id: "captions",   label: "Captions" },
+      { id: "brandvoice", label: "Brand Voice" },
+    ],
+  },
+  {
+    label: "Review",
+    tabs: [
+      { id: "grid",      label: "Grid" },
+      { id: "analytics", label: "Analytics" },
+    ],
+  },
+];
 
-export default function App() {
-  const [tab, setTab] = useState(0);
+const ALL_TABS = TAB_GROUPS.flatMap(g => g.tabs);
+
+function AppInner() {
+  const [activeTab, setActiveTab] = useState("pipeline");
 
   // ── All data from Supabase ──────────────────────────────────────────────
   const { items,     loading: itemsLoading,     addItem,      updateItem,      deleteItem      } = useContent();
   const { campaigns, loading: campaignsLoading, addCampaign,  updateCampaign,  deleteCampaign  } = useCampaigns();
   const { products,  loading: productsLoading,  addProduct,   deleteProduct                    } = useProducts();
   const { voice: brandVoice, setVoice: setBrandVoice                                           } = useBrandVoice(defaultBrandVoice);
+  const commentCounts = useCommentCounts();
+  const toast = useToast();
 
-  // ── Team identity (localStorage is correct here — per-device preference) ─
+  // ── Team identity ───────────────────────────────────────────────────────
   const { member, showPicker, chooseMember, switchMember } = useTeamMember();
 
-  // ── Products adapter (views expect setProducts(fn) shape) ──────────────
+  // ── Products adapter ────────────────────────────────────────────────────
   const setProducts = async (updater) => {
     const next = typeof updater === "function" ? updater(products) : updater;
     const added   = next.filter(n => !products.some(o => o.id === n.id));
@@ -34,6 +64,37 @@ export default function App() {
 
   const loading = itemsLoading || campaignsLoading || productsLoading;
 
+  // ── Toast-wrapped CRUD ──────────────────────────────────────────────────
+  const addItemWithToast = async (item) => {
+    await addItem(item);
+    toast(`"${item.title}" added`, 'success');
+  };
+
+  const updateItemWithToast = async (id, updates) => {
+    await updateItem(id, updates);
+    toast('Content updated', 'success');
+  };
+
+  const deleteItemWithToast = async (id) => {
+    const item = items.find(i => i.id === id);
+    await deleteItem(id);
+    toast(`"${item?.title || 'Item'}" deleted`, 'info', item ? async () => {
+      const { id: _id, created_at, ...rest } = item;
+      await addItem(rest).catch(console.error);
+    } : null);
+  };
+
+  const addCampaignWithToast = async (campaign) => {
+    await addCampaign(campaign);
+    toast(`Campaign "${campaign.name}" created`, 'success');
+  };
+
+  const deleteCampaignWithToast = async (id) => {
+    const camp = campaigns.find(c => c.id === id);
+    await deleteCampaign(id);
+    toast(`Campaign "${camp?.name || ''}" deleted`, 'info');
+  };
+
   return (
     <>
       {showPicker && <TeamPicker onChoose={chooseMember} />}
@@ -43,7 +104,7 @@ export default function App() {
         <div className="bg-white border-b border-stone-100 sticky top-0 z-40">
           <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
             <div>
-              <span className="font-bold text-stone-800 text-lg tracking-tight">tāst</span>
+              <span className="font-bold text-stone-800 text-lg tracking-tight">tast</span>
               <span className="text-stone-400 text-sm ml-2">content ops</span>
             </div>
             <div className="flex items-center gap-3">
@@ -58,18 +119,29 @@ export default function App() {
             </div>
           </div>
 
-          {/* ── Tabs ── */}
+          {/* ── Grouped Tabs ── */}
           <div className="max-w-5xl mx-auto px-4 overflow-x-auto">
-            <div className="flex gap-1">
-              {TABS.map((t, i) => (
-                <button key={t} onClick={() => setTab(i)}
-                  className="text-sm px-3 py-2.5 border-b-2 whitespace-nowrap font-medium transition-colors"
-                  style={tab === i ? { borderColor: "#F05881", color: "#F05881" } : { borderColor: "transparent", color: "#a8a29e" }}>
-                  {t}
-                  {t === "Pipeline" && items.length > 0 && (
-                    <span className="ml-1 text-xs px-1.5 py-0.5 rounded-full" style={{ background: "#fff0f4", color: "#F05881" }}>{items.length}</span>
-                  )}
-                </button>
+            <div className="flex gap-0.5 items-end">
+              {TAB_GROUPS.map((group) => (
+                <div key={group.label} className="flex items-end">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-300 px-1.5 pb-2.5 hidden sm:block select-none">
+                    {group.label}
+                  </span>
+                  {group.tabs.map((t) => (
+                    <button key={t.id} onClick={() => setActiveTab(t.id)}
+                      className="text-sm px-3 py-2.5 border-b-2 whitespace-nowrap font-medium transition-colors"
+                      style={activeTab === t.id
+                        ? { borderColor: "#F05881", color: "#F05881" }
+                        : { borderColor: "transparent", color: "#a8a29e" }}>
+                      {t.label}
+                      {t.id === "pipeline" && items.length > 0 && (
+                        <span className="ml-1 text-xs px-1.5 py-0.5 rounded-full" style={{ background: "#fff0f4", color: "#F05881" }}>{items.length}</span>
+                      )}
+                    </button>
+                  ))}
+                  {/* Subtle divider between groups */}
+                  <div className="w-px h-5 bg-stone-100 mx-1 mb-2 hidden sm:block" />
+                </div>
               ))}
             </div>
           </div>
@@ -86,17 +158,25 @@ export default function App() {
             </div>
           ) : (
             <>
-              {tab === 0 && <Pipeline    items={items} addItem={addItem} updateItem={updateItem} deleteItem={deleteItem} campaigns={campaigns} products={products} setProducts={setProducts} currentMember={member} />}
-              {tab === 1 && <Calendar    items={items} addItem={addItem} updateItem={updateItem} deleteItem={deleteItem} campaigns={campaigns} products={products} setProducts={setProducts} currentMember={member} />}
-              {tab === 2 && <Campaigns   campaigns={campaigns} addCampaign={addCampaign} updateCampaign={updateCampaign} deleteCampaign={deleteCampaign} allItems={items} addItem={addItem} updateItem={updateItem} deleteItem={deleteItem} products={products} setProducts={setProducts} currentMember={member} />}
-              {tab === 3 && <InstagramGrid items={items} addItem={addItem} updateItem={updateItem} deleteItem={deleteItem} campaigns={campaigns} products={products} setProducts={setProducts} currentMember={member} />}
-              {tab === 4 && <Analytics   items={items} campaigns={campaigns} />}
-              {tab === 5 && <BrandVoice  voice={brandVoice} setVoice={setBrandVoice} />}
-              {tab === 6 && <Captions    brandVoice={brandVoice} />}
+              {activeTab === "pipeline"  && <Pipeline    items={items} addItem={addItemWithToast} updateItem={updateItemWithToast} deleteItem={deleteItemWithToast} campaigns={campaigns} products={products} setProducts={setProducts} currentMember={member} commentCounts={commentCounts} />}
+              {activeTab === "calendar"  && <Calendar    items={items} addItem={addItemWithToast} updateItem={updateItemWithToast} deleteItem={deleteItemWithToast} campaigns={campaigns} products={products} setProducts={setProducts} currentMember={member} commentCounts={commentCounts} />}
+              {activeTab === "campaigns" && <Campaigns   campaigns={campaigns} addCampaign={addCampaignWithToast} updateCampaign={updateCampaign} deleteCampaign={deleteCampaignWithToast} allItems={items} addItem={addItemWithToast} updateItem={updateItemWithToast} deleteItem={deleteItemWithToast} products={products} setProducts={setProducts} currentMember={member} commentCounts={commentCounts} />}
+              {activeTab === "grid"      && <InstagramGrid items={items} addItem={addItemWithToast} updateItem={updateItemWithToast} deleteItem={deleteItemWithToast} campaigns={campaigns} products={products} setProducts={setProducts} currentMember={member} commentCounts={commentCounts} />}
+              {activeTab === "analytics" && <Analytics   items={items} campaigns={campaigns} updateItem={updateItemWithToast} />}
+              {activeTab === "brandvoice" && <BrandVoice  voice={brandVoice} setVoice={setBrandVoice} />}
+              {activeTab === "captions"  && <Captions    brandVoice={brandVoice} />}
             </>
           )}
         </div>
       </div>
     </>
+  );
+}
+
+export default function App() {
+  return (
+    <ToastProvider>
+      <AppInner />
+    </ToastProvider>
   );
 }
