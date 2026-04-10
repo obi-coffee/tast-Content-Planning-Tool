@@ -28,30 +28,34 @@ export default function CommentsPanel({ itemId, currentMember, onClose }) {
   }
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
-      display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-      zIndex: 500, fontFamily: 'Arial, sans-serif',
-    }} onClick={onClose}>
-      <div style={{
-        background: '#FBF9F3', borderRadius: '16px 16px 0 0',
-        width: '100%', maxWidth: 600, maxHeight: '70vh',
-        display: 'flex', flexDirection: 'column',
-        padding: '24px 24px 0',
-      }} onClick={e => e.stopPropagation()}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <h3 style={{ fontFamily: '"Times New Roman", serif', fontSize: 20, fontWeight: 400, margin: 0 }}>
+    <div
+      className="fixed inset-0 bg-black/40 flex items-end justify-center z-[500] font-inter"
+      onClick={onClose}
+    >
+      <div
+        className="bg-london-fog rounded-t-2xl w-full max-w-[600px] max-h-[70vh] flex flex-col pt-6 px-6"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="font-inter text-xl font-bold text-rich-black">
             Comments
           </h3>
-          <button onClick={onClose} style={{
-            background: 'none', border: 'none', fontSize: 20,
-            cursor: 'pointer', color: '#757575', padding: 4,
-          }}>×</button>
+          <button
+            onClick={onClose}
+            className="text-rich-black/30 hover:text-rich-black text-xl p-1 transition-colors"
+          >
+            &times;
+          </button>
         </div>
-        <div style={{ overflowY: 'auto', flex: 1, marginBottom: 16 }}>
-          {loading && <p style={{ color: '#757575', fontSize: 13 }}>Loading...</p>}
+
+        {/* Comments list */}
+        <div className="overflow-y-auto flex-1 mb-4">
+          {loading && (
+            <p className="text-rich-black/30 text-xs font-mono uppercase tracking-wider text-center py-6">Loading...</p>
+          )}
           {!loading && comments.length === 0 && (
-            <p style={{ color: '#757575', fontSize: 13, textAlign: 'center', padding: '24px 0' }}>
+            <p className="text-rich-black/30 text-sm text-center py-8">
               No comments yet. Be the first!
             </p>
           )}
@@ -59,32 +63,31 @@ export default function CommentsPanel({ itemId, currentMember, onClose }) {
             const author = getMember(c.author_id)
             const isMe = currentMember?.id === c.author_id
             return (
-              <div key={c.id} style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
-                <div style={{
-                  width: 32, height: 32, borderRadius: '50%',
-                  background: author?.color || '#757575',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 12, fontWeight: 700, color: '#fff',
-                  flexShrink: 0, fontFamily: '"Times New Roman", serif',
-                }}>
+              <div key={c.id} className="flex gap-2.5 mb-4">
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 font-inter"
+                  style={{ background: author?.color || '#1A1A1A40' }}
+                >
                   {author?.initials || '?'}
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>
+                <div className="flex-1">
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <span className="text-[13px] font-semibold text-rich-black">
                       {c.author_name}
                     </span>
-                    <span style={{ fontSize: 11, color: '#757575' }}>
+                    <span className="text-[11px] font-mono text-rich-black/30">
                       {timeAgo(c.created_at)}
                     </span>
                     {isMe && (
-                      <button onClick={() => deleteComment(c.id)} style={{
-                        marginLeft: 'auto', background: 'none', border: 'none',
-                        color: '#ccc', fontSize: 11, cursor: 'pointer', padding: 0,
-                      }}>delete</button>
+                      <button
+                        onClick={() => deleteComment(c.id)}
+                        className="ml-auto text-rich-black/20 hover:text-no3 text-[11px] transition-colors"
+                      >
+                        delete
+                      </button>
                     )}
                   </div>
-                  <p style={{ margin: 0, fontSize: 13, color: '#333', lineHeight: 1.5 }}>
+                  <p className="text-[13px] text-rich-black/70 leading-relaxed font-body">
                     {c.text}
                   </p>
                 </div>
@@ -93,27 +96,20 @@ export default function CommentsPanel({ itemId, currentMember, onClose }) {
           })}
           <div ref={bottomRef} />
         </div>
-        <div style={{
-          borderTop: '1px solid #e8e4dd', padding: '16px 0',
-          display: 'flex', gap: 10,
-        }}>
+
+        {/* Input */}
+        <div className="border-t border-rich-black/8 py-4 flex gap-2.5">
           <input
             value={text}
             onChange={e => setText(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSubmit()}
             placeholder="Add a comment..."
-            style={{
-              flex: 1, padding: '10px 14px', borderRadius: 8,
-              border: '1.5px solid #e0dcd5', background: '#fff',
-              fontSize: 13, fontFamily: 'Arial, sans-serif', outline: 'none',
-            }}
+            className="flex-1 px-3.5 py-2.5 rounded-lg border-[1.5px] border-rich-black/12 bg-white text-[13px] font-inter text-rich-black outline-none focus:ring-2 focus:ring-pink/20 focus:border-pink/40 transition-colors"
           />
-          <button onClick={handleSubmit} style={{
-            padding: '10px 20px', borderRadius: 8,
-            background: '#F05881', border: 'none', color: '#fff',
-            fontSize: 13, fontWeight: 600, cursor: 'pointer',
-            fontFamily: 'Arial, sans-serif',
-          }}>
+          <button
+            onClick={handleSubmit}
+            className="px-5 py-2.5 rounded-lg bg-pink text-white text-[13px] font-semibold font-inter cursor-pointer hover:opacity-90 transition-opacity"
+          >
             Post
           </button>
         </div>

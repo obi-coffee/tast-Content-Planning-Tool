@@ -280,7 +280,7 @@ export function InstagramGrid({ items, addItem, updateItem, deleteItem, campaign
         ))}
       </div>
 
-      <div className="flex gap-6 items-start">
+      <div className="flex flex-col md:flex-row gap-6 items-start">
         {/* Grid */}
         <div className="flex-shrink-0">
           {/* Phone frame */}
