@@ -588,7 +588,7 @@ export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, loc
 
       {/* ── Copy & Notes Section (email-aware) ── */}
       {isEmailPrimary ? (
-        <FormSection title="Email Content" defaultOpen={true}>
+        <FormSection key="email-content" title="Email Content" defaultOpen={true}>
           <Inp label="Subject line" value={form.emailSubject} onChange={e=>f("emailSubject",e.target.value)} placeholder="e.g. The story behind our newest roast" />
           <Inp label="Preview text" value={form.emailPreview} onChange={e=>f("emailPreview",e.target.value)} placeholder="Text shown in inbox before opening..." />
           <Txt label="Body" rows={6} value={form.emailBody} onChange={e=>f("emailBody",e.target.value)} placeholder="Write or paste your email body copy here..." />
@@ -596,7 +596,7 @@ export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, loc
           <Txt label="Notes" value={form.notes} onChange={e=>f("notes",e.target.value)} placeholder="Production notes, links, angles..." />
         </FormSection>
       ) : (
-        <FormSection title="Copy & Notes" defaultOpen={!!initial?.id}>
+        <FormSection key="copy-notes" title="Copy & Notes" defaultOpen={true}>
           <Txt label="Draft copy / caption" rows={3} value={form.draftCopy} onChange={e=>f("draftCopy",e.target.value)} placeholder="Paste your draft caption or copy here..." />
           <Txt label="Notes" value={form.notes} onChange={e=>f("notes",e.target.value)} placeholder="Production notes, links, angles..." />
         </FormSection>
