@@ -303,7 +303,7 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
           onAction={() => { setEditItem(null); setShowForm(true); }}
         />
       ) : view==="kanban" ? (
-        <div className="flex gap-3 overflow-x-auto pb-4" style={{minHeight:400}}>
+        <div className="flex gap-3 pb-4" style={{minHeight:400}}>
           {PIPELINE_STAGES.map(stage=>{
             const stageItems = filteredItems.filter(i=>i.stage===stage);
             const isOver = dragOver===stage;
@@ -312,8 +312,8 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
                 onDragOver={e=>{e.preventDefault();setDragOver(stage);}}
                 onDragLeave={()=>setDragOver(null)}
                 onDrop={()=>{if(dragItem&&dragItem.stage!==stage)moveStage(dragItem,stage);setDragItem(null);setDragOver(null);}}
-                className="flex-shrink-0 rounded-xl p-3 transition-all duration-200"
-                style={{width:isMobile?160:230,background:isOver?"#F0588110":"#f5f2ed",border:isOver?"2px dashed #F05881":"2px solid transparent",transform:isOver?"scale(1.02)":"scale(1)"}}>
+                className="flex-1 min-w-[140px] rounded-xl p-3 transition-all duration-200"
+                style={{background:isOver?"#F0588110":"#f5f2ed",border:isOver?"2px dashed #F05881":"2px solid transparent",transform:isOver?"scale(1.02)":"scale(1)"}}>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full" style={{background:STAGE_META[stage].color}} />
