@@ -128,10 +128,10 @@ export function Tag({ label, colorClass, style }) {
 export function Modal({ title, onClose, children }) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-end md:items-center justify-center z-50 md:p-4">
-      <div className="bg-white w-full md:rounded-2xl md:max-w-lg rounded-t-2xl shadow-xl max-h-[92vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-5 border-b border-stone-100">
-          <h2 className="font-semibold text-stone-800 text-lg">{title}</h2>
-          <button onClick={onClose} className="text-stone-400 hover:text-stone-600 text-xl w-10 h-10 flex items-center justify-center">✕</button>
+      <div className="bg-cream w-full md:rounded-2xl md:max-w-lg rounded-t-2xl shadow-xl max-h-[92vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-5 border-b border-warm-divider">
+          <h2 className="font-serif text-warm-text text-xl" style={{ fontWeight: 400 }}>{title}</h2>
+          <button onClick={onClose} className="text-warm-muted hover:text-warm-text text-xl w-10 h-10 flex items-center justify-center">\u2715</button>
         </div>
         <div className="p-5 pb-8">{children}</div>
       </div>
@@ -142,8 +142,8 @@ export function Modal({ title, onClose, children }) {
 export function Inp({ label, ...p }) {
   return (
     <div className="mb-3">
-      {label && <label className="block text-sm font-medium text-stone-600 mb-1">{label}</label>}
-      <input className="w-full border border-stone-200 rounded-lg px-3 py-3 md:py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#F05881]/40" {...p} />
+      {label && <label className="block text-xs font-semibold text-warm-muted uppercase tracking-wide mb-1.5">{label}</label>}
+      <input className="w-full border border-warm-border rounded-lg px-3 py-3 md:py-2.5 text-sm text-warm-text bg-white focus:outline-none focus:ring-2 focus:ring-brand-300/30 focus:border-brand-300/50 transition-colors" {...p} />
     </div>
   );
 }
@@ -151,8 +151,8 @@ export function Inp({ label, ...p }) {
 export function Sel({ label, options, ...p }) {
   return (
     <div className="mb-3">
-      {label && <label className="block text-sm font-medium text-stone-600 mb-1">{label}</label>}
-      <select className="w-full border border-stone-200 rounded-lg px-3 py-3 md:py-2 text-sm focus:outline-none bg-white focus:ring-2 focus:ring-[#F05881]/40" {...p}>
+      {label && <label className="block text-xs font-semibold text-warm-muted uppercase tracking-wide mb-1.5">{label}</label>}
+      <select className="w-full border border-warm-border rounded-lg px-3 py-3 md:py-2.5 text-sm text-warm-text bg-white focus:outline-none focus:ring-2 focus:ring-brand-300/30 focus:border-brand-300/50 transition-colors" {...p}>
         {options.map(o => <option key={o}>{o}</option>)}
       </select>
     </div>
@@ -162,8 +162,8 @@ export function Sel({ label, options, ...p }) {
 export function Txt({ label, rows=4, ...p }) {
   return (
     <div className="mb-3">
-      {label && <label className="block text-sm font-medium text-stone-600 mb-1">{label}</label>}
-      <textarea rows={rows} className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#F05881]/40 resize-y min-h-[60px]" {...p} />
+      {label && <label className="block text-xs font-semibold text-warm-muted uppercase tracking-wide mb-1.5">{label}</label>}
+      <textarea rows={rows} className="w-full border border-warm-border rounded-lg px-3 py-2.5 text-sm text-warm-text bg-white focus:outline-none focus:ring-2 focus:ring-brand-300/30 focus:border-brand-300/50 resize-y min-h-[60px] transition-colors" {...p} />
     </div>
   );
 }
@@ -330,15 +330,15 @@ export function PhaseTag({ dateStr, className = "" }) {
 }
 
 // ── Empty State ───────────────────────────────────────────────────────────
-export function EmptyState({ icon = "~", title, description, actionLabel, onAction }) {
+export function EmptyState({ icon = "\u2217", title, description, actionLabel, onAction }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-stone-100 flex items-center justify-center text-2xl text-stone-300 mb-4">{icon}</div>
-      <p className="text-sm font-semibold text-stone-500 mb-1">{title}</p>
-      {description && <p className="text-xs text-stone-400 max-w-xs mb-4">{description}</p>}
+      <div className="w-14 h-14 rounded-2xl bg-cream-dark flex items-center justify-center text-2xl text-warm-muted/40 mb-4 font-serif">{icon}</div>
+      <p className="text-sm font-serif text-warm-text mb-1">{title}</p>
+      {description && <p className="text-xs text-warm-muted max-w-xs mb-4">{description}</p>}
       {actionLabel && onAction && (
         <button onClick={onAction} style={{ background: "#F05881" }}
-          className="text-sm text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-opacity">
+          className="text-sm text-white px-5 py-2.5 rounded-lg hover:opacity-90 transition-opacity">
           {actionLabel}
         </button>
       )}
@@ -366,15 +366,15 @@ export function CommentBadge({ count, onClick }) {
 export function FormSection({ title, defaultOpen = true, children }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="mb-2">
+    <div className="mb-1">
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        className="flex items-center justify-between w-full py-2 text-xs font-semibold uppercase tracking-wider text-stone-400 hover:text-stone-600 transition-colors"
+        className="flex items-center justify-between w-full py-2.5 text-xs font-semibold uppercase tracking-wider text-warm-muted hover:text-warm-text transition-colors border-b border-warm-divider/50 mb-2"
       >
         {title}
         <span className="text-sm transition-transform" style={{ transform: open ? 'rotate(0deg)' : 'rotate(-90deg)' }}>
-          ▾
+          \u25be
         </span>
       </button>
       {open && <div>{children}</div>}

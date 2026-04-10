@@ -3,8 +3,49 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>tāst content ops</title>
+    <title>tast content ops</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              cream: '#FBF9F3',
+              'cream-dark': '#f5f0e8',
+              brand: {
+                50: '#fff0f4',
+                100: '#ffe0e9',
+                200: '#fa8f9c',
+                300: '#F05881',
+                400: '#ef4056',
+                500: '#a12f52',
+              },
+              warm: {
+                border: '#e0dcd5',
+                divider: '#e8e4dd',
+                text: '#1a1a1a',
+                muted: '#757575',
+              },
+            },
+            fontFamily: {
+              serif: ['"Times New Roman"', 'Georgia', 'serif'],
+              sans: ['Arial', 'Helvetica', 'sans-serif'],
+            },
+          },
+        },
+      }
+    </script>
+    <style>
+      body {
+        background: #FBF9F3;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+      /* Warm scrollbar for the app */
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: #e0dcd5; border-radius: 3px; }
+      ::-webkit-scrollbar-thumb:hover { background: #c5c0b8; }
+    </style>
   </head>
   <body>
     <div id="root"></div>

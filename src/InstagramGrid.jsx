@@ -239,7 +239,7 @@ export function InstagramGrid({ items, addItem, updateItem, deleteItem, campaign
       {/* Header */}
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div>
-          <h2 className="text-lg font-semibold text-stone-800">Instagram Grid</h2>
+          <h2 className="font-serif text-xl text-warm-text" style={{ fontWeight: 400 }}>Instagram Grid</h2>
           <p className="text-xs text-stone-400 mt-0.5">{igItems.length} post{igItems.length !== 1 ? "s" : ""} · visual feed preview</p>
         </div>
         <div className="flex items-center gap-2">
