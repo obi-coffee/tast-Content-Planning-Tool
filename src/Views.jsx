@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { PIPELINE_STAGES, CHANNEL_OPTIONS, TYPE_OPTIONS, STAGE_META, TYPE_COLORS, driveThumb, Tag, Modal, Inp, Sel, Txt, ChannelPicker, CampaignProgress, ContentForm, flattenChannels, PhaseTag, PHASES, getPhaseForDate, EmptyState, CommentBadge } from "./Components.jsx";
+import { PIPELINE_STAGES, CHANNEL_OPTIONS, TYPE_OPTIONS, STAGE_META, TYPE_COLORS, driveThumb, Tag, Modal, Inp, Sel, Txt, ChannelPicker, CampaignProgress, ContentForm, flattenChannels, normalizeChannels, PhaseTag, PHASES, getPhaseForDate, EmptyState, CommentBadge } from "./Components.jsx";
 import { Avatar } from "./components/Avatar.jsx";
 import CommentsPanel from "./components/CommentsPanel.jsx";
 
@@ -123,8 +123,8 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
   const [editItem, setEditItem] = useState(null);
   const [dragItem, setDragItem] = useState(null);
   const [dragOver, setDragOver] = useState(null);
-  const [phaseFilter, setPhaseFilter] = useState("all");
   const [themeFilter, setThemeFilter] = useState("all");
+  const [platformFilter, setPlatformFilter] = useState("all");
 
   // Bulk selection state
   const [selectedIds, setSelectedIds] = useState(new Set());
@@ -202,11 +202,11 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
   };
 
   const filteredItems = items.filter(item => {
-    if (phaseFilter !== "all") {
-      const phase = getPhaseForDate(item.date);
-      if (!phase || phase.id !== phaseFilter) return false;
-    }
     if (themeFilter !== "all" && item.type !== themeFilter) return false;
+    if (platformFilter !== "all") {
+      const primary = normalizeChannels(item.channels).primary;
+      if (primary !== platformFilter) return false;
+    }
     return true;
   });
 
@@ -260,20 +260,23 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
         </div>
       )}
 
-      {/* Phase filter pills */}
+      {/* Platform filter pills */}
       <div className="flex gap-1.5 flex-wrap mb-2">
-        <button onClick={()=>setPhaseFilter("all")}
+        <button onClick={()=>setPlatformFilter("all")}
           className="text-xs px-2.5 py-1 rounded-full border font-medium transition-all"
-          style={phaseFilter==="all"?{background:"#F05881",color:"white",borderColor:"#F05881"}:{background:"white",color:"#78716c",borderColor:"#e7e5e4"}}>
-          All phases
+          style={platformFilter==="all"?{background:"#F05881",color:"white",borderColor:"#F05881"}:{background:"white",color:"#78716c",borderColor:"#e7e5e4"}}>
+          All platforms
         </button>
-        {PHASES.map(p => (
-          <button key={p.id} onClick={()=>setPhaseFilter(phaseFilter===p.id?"all":p.id)}
-            className="text-xs px-2.5 py-1 rounded-full border font-medium transition-all"
-            style={phaseFilter===p.id?{background:p.color,color:"white",borderColor:p.color}:{background:"white",color:p.color,borderColor:p.color+"66"}}>
-            {p.name.split("\u2014")[0].trim()}
-          </button>
-        ))}
+        {CHANNEL_OPTIONS.map(ch => {
+          const count = items.filter(i => normalizeChannels(i.channels).primary === ch).length;
+          return (
+            <button key={ch} onClick={()=>setPlatformFilter(platformFilter===ch?"all":ch)}
+              className="text-xs px-2.5 py-1 rounded-full border font-medium transition-all"
+              style={platformFilter===ch?{background:"#F05881",color:"white",borderColor:"#F05881"}:{background:"white",color:"#78716c",borderColor:"#e7e5e4"}}>
+              {ch} <span className="opacity-60">({count})</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Theme filter */}
@@ -376,7 +379,7 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
               </div>
             );
           })}
-          {!filteredItems.length && <p className="text-stone-400 text-sm">{phaseFilter !== 'all' || themeFilter !== 'all' ? 'No content matches this filter.' : 'No content yet.'}</p>}
+          {!filteredItems.length && <p className="text-stone-400 text-sm">{platformFilter !== 'all' || themeFilter !== 'all' ? 'No content matches this filter.' : 'No content yet.'}</p>}
         </div>
       )}
 

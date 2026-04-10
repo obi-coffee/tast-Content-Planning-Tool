@@ -4,7 +4,7 @@ import { Avatar, AssigneeSelector } from "./components/Avatar.jsx";
 import { CONTENT_TEMPLATES } from "./lib/templates.js";
 
 export const PIPELINE_STAGES = ["Idea", "In Campaign", "In Production", "Ready", "Published"];
-export const CHANNEL_OPTIONS = ["Instagram", "Email", "Website", "TikTok", "LinkedIn"];
+export const CHANNEL_OPTIONS = ["Instagram", "Email", "Website", "Instagram Reels", "LinkedIn"];
 
 // ── 13 content themes from the Instagram plan ─────────────────────────────
 export const TYPE_OPTIONS = [
@@ -163,7 +163,7 @@ export function Txt({ label, rows=4, ...p }) {
   return (
     <div className="mb-3">
       {label && <label className="block text-sm font-medium text-stone-600 mb-1">{label}</label>}
-      <textarea rows={rows} className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#F05881]/40 resize-none" {...p} />
+      <textarea rows={rows} className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#F05881]/40 resize-y min-h-[60px]" {...p} />
     </div>
   );
 }

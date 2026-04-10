@@ -701,7 +701,7 @@ export function Analytics({ items, campaigns, updateItem }) {
           <p className="text-sm font-semibold text-stone-800 mb-3">By channel</p>
           {byCh.map(ch => (
             <Bar key={ch.label} label={ch.label} value={ch.count} max={maxCh} count={ch.count}
-              color={ch.label === "Instagram" ? PINK : ch.label === "Email" ? "#a12f52" : ch.label === "TikTok" ? "#ef4056" : "#fa8f9c"} />
+              color={ch.label === "Instagram" ? PINK : ch.label === "Email" ? "#a12f52" : ch.label === "Instagram Reels" ? "#ef4056" : "#fa8f9c"} />
           ))}
         </div>
 
