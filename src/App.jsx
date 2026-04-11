@@ -103,48 +103,34 @@ function AppInner() {
 
       <div className="min-h-screen bg-london-fog font-inter">
         {/* ── Header ── */}
-        <div className="bg-london-fog border-b border-rich-black/10 sticky top-0 z-40">
-          <div className="w-full px-6 lg:px-10 py-4 flex items-center justify-between">
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-rich-black tracking-tight">tast</span>
-              <span className="text-rich-black/40 text-sm font-mono uppercase tracking-wider text-[10px]">content ops</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-rich-black/30 hidden sm:block">
-                {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-              </span>
-              {member && (
-                <button onClick={switchMember} title="Switch member" className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-                  <Avatar memberId={member.id} size={28} showName />
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* ── Grouped Tabs ── */}
-          <div className="w-full px-6 lg:px-10 overflow-x-auto">
-            <div className="flex gap-0.5 items-end">
-              {TAB_GROUPS.map((group) => (
-                <div key={group.label} className="flex items-end">
-                  <span className="font-mono text-[9px] uppercase tracking-widest text-rich-black/25 px-1.5 pb-2.5 hidden sm:block select-none">
-                    {group.label}
-                  </span>
-                  {group.tabs.map((t) => (
+        <div className="bg-london-fog border-b border-rich-black/8 sticky top-0 z-40">
+          <div className="w-full px-6 lg:px-10 flex items-center justify-between h-14">
+            {/* Logo + Nav in one row */}
+            <div className="flex items-center gap-8">
+              <span className="text-lg font-bold text-rich-black tracking-tight shrink-0">tast</span>
+              <nav className="flex items-center gap-0.5 overflow-x-auto">
+                {TAB_GROUPS.map((group) => (
+                  group.tabs.map((t) => (
                     <button key={t.id} onClick={() => setActiveTab(t.id)}
-                      className="text-sm px-3 py-2.5 border-b-2 whitespace-nowrap transition-colors font-inter"
+                      className="text-[13px] px-3 py-1.5 rounded-lg whitespace-nowrap transition-all duration-150 font-inter"
                       style={activeTab === t.id
-                        ? { borderColor: "#F05881", color: "#F05881", fontWeight: 600 }
-                        : { borderColor: "transparent", color: "#1A1A1A80", fontWeight: 500 }}>
+                        ? { background: "#F0588112", color: "#F05881", fontWeight: 600 }
+                        : { color: "#1A1A1A50", fontWeight: 500 }}>
                       {t.label}
                       {t.id === "pipeline" && items.length > 0 && (
-                        <span className="ml-1.5 font-mono text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: "#F0588115", color: "#F05881" }}>{items.length}</span>
+                        <span className="ml-1 font-mono text-[10px] opacity-60">{items.length}</span>
                       )}
                     </button>
-                  ))}
-                  <div className="w-px h-4 mx-1.5 mb-2.5 hidden sm:block bg-rich-black/8" />
-                </div>
-              ))}
+                  ))
+                ))}
+              </nav>
             </div>
+            {/* Right side */}
+            {member && (
+              <button onClick={switchMember} title="Switch member" className="flex items-center gap-2 hover:opacity-70 transition-opacity shrink-0">
+                <Avatar memberId={member.id} size={26} showName />
+              </button>
+            )}
           </div>
         </div>
 
