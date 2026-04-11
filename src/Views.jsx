@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { PIPELINE_STAGES, CHANNEL_OPTIONS, TYPE_OPTIONS, STAGE_META, TYPE_COLORS, driveThumb, Tag, Modal, Inp, Sel, Txt, ChannelPicker, CampaignProgress, ContentForm, flattenChannels, normalizeChannels, PhaseTag, PHASES, getPhaseForDate, EmptyState, CommentBadge } from "./Components.jsx";
+import { PIPELINE_STAGES, CHANNEL_OPTIONS, TYPE_OPTIONS, STAGE_META, TYPE_COLORS, driveThumb, Tag, Modal, Inp, Sel, Txt, ChannelPicker, CampaignProgress, ContentForm, flattenChannels, normalizeChannels, PhaseTag, PHASES, getPhaseForDate, EmptyState, CommentBadge, SeriesTag, SeriesManager } from "./Components.jsx";
 import { Avatar } from "./components/Avatar.jsx";
 import CommentsPanel from "./components/CommentsPanel.jsx";
 
@@ -28,7 +28,7 @@ function getItemColor(item, products) {
 }
 
 // ── Content Card ───────────────────────────────────────────────────────────
-function ContentCard({ item, campaigns, onClick, compact, currentMember, commentCount = 0, selected, onToggleSelect }) {
+function ContentCard({ item, campaigns, onClick, compact, currentMember, commentCount = 0, selected, onToggleSelect, contentSeries = [] }) {
   const [showComments, setShowComments] = useState(false);
   const campaign = campaigns.find(c=>String(c.id)===String(item.campaignId));
   const channels = flattenChannels(item.channels);
@@ -55,7 +55,7 @@ function ContentCard({ item, campaigns, onClick, compact, currentMember, comment
           {!compact && campaign?.keyMessage && <p className="text-xs text-rich-black/40 mt-1 line-clamp-1 italic font-arizona">"{campaign.keyMessage}"</p>}
           {!compact && item.draftCopy && <p className="text-xs text-rich-black/40 mt-1 line-clamp-2 border-l-2 pl-2 border-rich-black/10">{item.draftCopy}</p>}
           <div className={`flex flex-wrap gap-1 ${compact?"mt-1":"mt-2"}`}>
-            {!compact && <Tag label={item.type} colorClass={TYPE_COLORS[item.type]||TYPE_COLORS["Other"]} />}
+            {!compact && item.type && <SeriesTag name={item.type} seriesList={contentSeries} />}
             {channels.slice(0, compact?1:99).map(ch=><Tag key={ch} label={ch} colorClass="bg-rich-black/5 text-rich-black/40" />)}
             {compact && channels.length>1 && <span className="text-xs text-rich-black/40">+{channels.length-1}</span>}
           </div>
@@ -116,15 +116,16 @@ function parseCSV(text) {
 }
 
 // ── PIPELINE ──────────────────────────────────────────────────────────────
-export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, products, setProducts, currentMember, commentCounts = {} }) {
+export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, products, setProducts, currentMember, commentCounts = {}, contentSeries = [], onManageSeries, addSeries, updateSeriesItem, deleteSeries }) {
   const isMobile = useIsMobile();
   const [view, setView] = useState("kanban");
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [dragItem, setDragItem] = useState(null);
   const [dragOver, setDragOver] = useState(null);
-  const [themeFilter, setThemeFilter] = useState("all");
+  const [seriesFilter, setSeriesFilter] = useState("all");
   const [platformFilter, setPlatformFilter] = useState("all");
+  const [showSeriesManager, setShowSeriesManager] = useState(false);
 
   // Bulk selection state
   const [selectedIds, setSelectedIds] = useState(new Set());
@@ -177,7 +178,7 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
       for (const row of rows) {
         if (!row.title) continue;
         const { id, created_at, ...rest } = row;
-        await addItem({ stage: "Idea", type: TYPE_OPTIONS[0], format: "Single Photo", ...rest }).catch(console.error);
+        await addItem({ stage: "Idea", type: "", format: "Single Photo", ...rest }).catch(console.error);
       }
     };
     input.click();
@@ -202,7 +203,7 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
   };
 
   const filteredItems = items.filter(item => {
-    if (themeFilter !== "all" && item.type !== themeFilter) return false;
+    if (seriesFilter !== "all" && item.type !== seriesFilter) return false;
     if (platformFilter !== "all") {
       const primary = normalizeChannels(item.channels).primary;
       if (primary !== platformFilter) return false;
@@ -278,20 +279,24 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
         })}
       </div>
 
-      {/* Theme filter */}
-      <div className="flex gap-1.5 flex-wrap mb-4 overflow-x-auto pb-1">
-        <button onClick={()=>setThemeFilter("all")}
-          className="text-xs px-2.5 py-1 rounded-full border font-medium whitespace-nowrap transition-all"
-          style={themeFilter==="all"?{background:"#F05881",color:"white",borderColor:"#F05881"}:{background:"white",color:"#1A1A1A60",borderColor:"#1A1A1A15"}}>
-          All themes
+      {/* Series filter */}
+      <div className="flex gap-1.5 flex-wrap mb-4 overflow-x-auto pb-1 items-center">
+        <button onClick={()=>setSeriesFilter("all")}
+          className="text-xs px-2.5 py-1 rounded-full border font-medium font-inter whitespace-nowrap transition-all duration-150"
+          style={seriesFilter==="all"?{background:"#1A1A1A",color:"white",borderColor:"#1A1A1A"}:{background:"white",color:"#1A1A1A60",borderColor:"#1A1A1A15"}}>
+          All series
         </button>
-        {TYPE_OPTIONS.map(t => (
-          <button key={t} onClick={()=>setThemeFilter(themeFilter===t?"all":t)}
-            className="text-xs px-2.5 py-1 rounded-full border font-medium whitespace-nowrap transition-all"
-            style={themeFilter===t?{background:"#F05881",color:"white",borderColor:"#F05881"}:{background:"white",color:"#1A1A1A60",borderColor:"#1A1A1A15"}}>
-            {t}
+        {contentSeries.map(s => (
+          <button key={s.id} onClick={()=>setSeriesFilter(seriesFilter===s.name?"all":s.name)}
+            className="text-xs px-2.5 py-1 rounded-full border font-medium font-inter whitespace-nowrap transition-all duration-150"
+            style={seriesFilter===s.name?{background:s.color,color:"white",borderColor:s.color}:{background:"white",color:s.color,borderColor:s.color+"40"}}>
+            {s.name}
           </button>
         ))}
+        <button onClick={() => setShowSeriesManager(true)}
+          className="text-[10px] text-pink hover:opacity-70 font-inter font-medium whitespace-nowrap transition-opacity">
+          + New series
+        </button>
       </div>
 
       {items.length === 0 ? (
@@ -323,7 +328,7 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
                 </div>
                 {stageItems.map(item=>(
                   <div key={item.id} draggable onDragStart={()=>setDragItem(item)} className="transition-opacity duration-150" style={{opacity:dragItem?.id===item.id?0.4:1}}>
-                    <ContentCard item={item} campaigns={campaigns} onClick={()=>openEdit(item)} compact={isMobile} currentMember={currentMember}
+                    <ContentCard item={item} campaigns={campaigns} onClick={()=>openEdit(item)} compact={isMobile} currentMember={currentMember} contentSeries={contentSeries}
                       commentCount={commentCounts[item.id] || 0}
                       selected={selectedIds.has(item.id)} onToggleSelect={bulkMode ? toggleSelect : null} />
                   </div>
@@ -378,7 +383,7 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
               </div>
             );
           })}
-          {!filteredItems.length && <p className="text-rich-black/30 text-sm">{platformFilter !== 'all' || themeFilter !== 'all' ? 'No content matches this filter.' : 'No content yet.'}</p>}
+          {!filteredItems.length && <p className="text-rich-black/30 text-sm">{platformFilter !== 'all' || seriesFilter !== 'all' ? 'No content matches this filter.' : 'No content yet.'}</p>}
         </div>
       )}
 
@@ -387,15 +392,20 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
           <ContentForm initial={editItem} campaigns={campaigns} onSave={saveItem}
             onDelete={editItem?.id ? () => deleteItemHandler(editItem) : null}
             onClose={()=>setShowForm(false)} products={products} setProducts={setProducts}
-            currentMember={currentMember} />
+            currentMember={currentMember} contentSeries={contentSeries} onManageSeries={onManageSeries} />
         </Modal>
+      )}
+
+      {/* Series Manager Modal (opened from filter bar) */}
+      {showSeriesManager && (
+        <SeriesManager series={contentSeries} onAdd={addSeries} onUpdate={updateSeriesItem} onDelete={deleteSeries} onClose={() => setShowSeriesManager(false)} />
       )}
     </div>
   );
 }
 
 // ── CALENDAR ──────────────────────────────────────────────────────────────
-export function Calendar({ items, addItem, updateItem, deleteItem, campaigns, products, setProducts, currentMember, commentCounts = {} }) {
+export function Calendar({ items, addItem, updateItem, deleteItem, campaigns, products, setProducts, currentMember, commentCounts = {}, contentSeries = [], addSeries, updateSeriesItem, deleteSeries }) {
   const isMobile = useIsMobile();
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
@@ -405,7 +415,7 @@ export function Calendar({ items, addItem, updateItem, deleteItem, campaigns, pr
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState(null);
 
-  const openNew = (date="") => { setEditItem({date,stage:"Idea",channels:{primary:"Instagram",secondary:[]},type:TYPE_OPTIONS[0]}); setShowForm(true); };
+  const openNew = (date="") => { setEditItem({date,stage:"Idea",channels:{primary:"Instagram",secondary:[]},type:""}); setShowForm(true); };
   const openEdit = item => { setEditItem(item); setShowForm(true); };
   const saveItem = async (form) => {
     if (editItem?.id) {
@@ -533,7 +543,7 @@ export function Calendar({ items, addItem, updateItem, deleteItem, campaigns, pr
             <ContentForm initial={editItem} campaigns={campaigns} onSave={saveItem}
               onDelete={editItem?.id ? () => deleteItemHandler(editItem) : null}
               onClose={()=>setShowForm(false)} products={products} setProducts={setProducts}
-              currentMember={currentMember} />
+              currentMember={currentMember} contentSeries={contentSeries} />
           </Modal>
         )}
       </div>
@@ -647,7 +657,7 @@ export function Calendar({ items, addItem, updateItem, deleteItem, campaigns, pr
           <ContentForm initial={editItem} campaigns={campaigns} onSave={saveItem}
             onDelete={editItem?.id ? () => deleteItemHandler(editItem) : null}
             onClose={()=>setShowForm(false)} products={products} setProducts={setProducts}
-            currentMember={currentMember} />
+            currentMember={currentMember} contentSeries={contentSeries} />
         </Modal>
       )}
     </div>
@@ -677,7 +687,7 @@ export function BrandVoice({ voice, setVoice }) {
 }
 
 // ── CAPTIONS ──────────────────────────────────────────────────────────────
-export function Captions({ brandVoice }) {
+export function Captions({ brandVoice, contentSeries = [] }) {
   const EDGE_FN_URL = "https://yfixjafskptbhjsbvxwf.supabase.co/functions/v1/generate-caption";
 
   const [channel, setChannel] = useState("Instagram");
@@ -717,7 +727,7 @@ export function Captions({ brandVoice }) {
       <p className="text-sm text-rich-black/30 mb-4">AI-drafted captions grounded in your brand voice.</p>
       <div className="bg-white rounded-xl border border-rich-black/8 p-4 shadow-sm mb-4">
         <Sel label="Channel" options={CHANNEL_OPTIONS} value={channel} onChange={e=>setChannel(e.target.value)} />
-        <Sel label="Content theme" options={["(no theme)",...TYPE_OPTIONS]} value={theme} onChange={e=>setTheme(e.target.value)} />
+        <Sel label="Content series" options={["(no series)",...contentSeries.map(s=>s.name)]} value={theme} onChange={e=>setTheme(e.target.value)} />
         <Inp label="Coffee / product (optional)" value={product} onChange={e=>setProduct(e.target.value)} placeholder="e.g. Colombia Honey Process Vol. 3" />
         <Txt label="Post context — what is this post about?" rows={3} value={context} onChange={e=>setContext(e.target.value)} placeholder="e.g. Behind the scenes at Mill City showing how our Vol. 3 blend is roasted..." />
         <Sel label="Tone direction" options={["On-brand default","More poetic","More direct","Playful","Educational","Hype / launch energy"]} value={tone} onChange={e=>setTone(e.target.value)} />

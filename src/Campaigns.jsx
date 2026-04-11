@@ -3,7 +3,7 @@ import { PIPELINE_STAGES, TYPE_OPTIONS, STAGE_META, driveThumb, Tag, Modal, Inp,
 import CommentsPanel from "./components/CommentsPanel.jsx";
 import { Avatar } from "./components/Avatar.jsx";
 
-export function Campaigns({ campaigns, addCampaign, updateCampaign, deleteCampaign, allItems, addItem, updateItem, deleteItem, products=[], setProducts=()=>{}, currentMember, commentCounts = {} }) {
+export function Campaigns({ campaigns, addCampaign, updateCampaign, deleteCampaign, allItems, addItem, updateItem, deleteItem, products=[], setProducts=()=>{}, currentMember, commentCounts = {}, contentSeries = [] }) {
   const [active, setActive] = useState(null);
   const [activeTab, setActiveTab] = useState("content");
   const [showCampForm, setShowCampForm] = useState(false);
@@ -92,7 +92,7 @@ export function Campaigns({ campaigns, addCampaign, updateCampaign, deleteCampai
         {activeTab==="content" && (
           <div>
             <div className="flex justify-end mb-3">
-              <button onClick={()=>{setEditContent({stage:"In Campaign",channels:normalizeChannels(c.channels).primary ? normalizeChannels(c.channels) : {primary:"Instagram",secondary:[]},type:TYPE_OPTIONS[0],campaignId:String(c.id)});setShowContentForm(true);}}
+              <button onClick={()=>{setEditContent({stage:"In Campaign",channels:normalizeChannels(c.channels).primary ? normalizeChannels(c.channels) : {primary:"Instagram",secondary:[]},type:"",campaignId:String(c.id)});setShowContentForm(true);}}
                 style={{background:"#F05881"}} className="hover:opacity-90 text-white text-sm px-4 py-2 rounded-lg font-medium">
                 + Add Content
               </button>
@@ -170,7 +170,7 @@ export function Campaigns({ campaigns, addCampaign, updateCampaign, deleteCampai
               onDelete={editContent?.id?deleteContent:null}
               onClose={()=>{setShowContentForm(false);setEditContent(null);}}
               lockCampaignId={true} products={products} setProducts={setProducts}
-              currentMember={currentMember} />
+              currentMember={currentMember} contentSeries={contentSeries} />
           </Modal>
         )}
         {commentItemId && (

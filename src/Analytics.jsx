@@ -465,7 +465,7 @@ function PerformanceMetrics({ items }) {
 }
 
 // ── Main Analytics View ────────────────────────────────────────────────────
-export function Analytics({ items, campaigns, updateItem }) {
+export function Analytics({ items, campaigns, updateItem, contentSeries = [] }) {
   const today = new Date();
   const thisMonth = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}`;
 
@@ -508,13 +508,19 @@ export function Analytics({ items, campaigns, updateItem }) {
     });
   }, [items, today]);
 
-  // By type — updated to use new themes
-  const byType = useMemo(() => TYPE_OPTIONS.map(t => ({
-    label: t,
-    count: items.filter(i => i.type === t).length,
-    bucket: INTENT_BUCKET[t],
-  })).filter(t => t.count > 0).sort((a,b) => b.count - a.count), [items]);
-  const maxType = Math.max(...byType.map(t => t.count), 1);
+  // By series — dynamic from contentSeries
+  const bySeries = useMemo(() => {
+    const seriesNames = contentSeries.map(s => s.name);
+    const counts = {};
+    items.forEach(i => { if (i.type) counts[i.type] = (counts[i.type] || 0) + 1; });
+    return Object.entries(counts)
+      .map(([name, count]) => {
+        const s = contentSeries.find(s => s.name === name);
+        return { label: name, count, color: s?.color || '#1A1A1A' };
+      })
+      .sort((a, b) => b.count - a.count);
+  }, [items, contentSeries]);
+  const maxSeries = Math.max(...bySeries.map(t => t.count), 1);
 
   // By team member
   const byMember = useMemo(() => TEAM_MEMBERS.map(m => ({
@@ -601,13 +607,13 @@ export function Analytics({ items, campaigns, updateItem }) {
                 );
               })}
             </div>
-            {/* Theme breakdown per bucket */}
-            <div className="mt-3 pt-3 border-t border-stone-50">
-              <p className="text-xs text-stone-400 mb-2">Theme distribution</p>
+            {/* Series breakdown */}
+            <div className="mt-3 pt-3 border-t border-rich-black/5">
+              <p className="text-xs text-rich-black/30 mb-2">Series distribution</p>
               <div className="flex flex-wrap gap-1.5">
-                {byType.map(t => (
+                {bySeries.map(t => (
                   <span key={t.label} className="text-xs px-2 py-0.5 rounded-full font-medium"
-                    style={{ background: INTENT_META[t.bucket]?.color + "18" || "#f5f5f4", color: INTENT_META[t.bucket]?.color || "#78716c" }}>
+                    style={{ background: t.color + "18", color: t.color }}>
                     {t.label} · {t.count}
                   </span>
                 ))}
@@ -705,13 +711,13 @@ export function Analytics({ items, campaigns, updateItem }) {
           ))}
         </div>
 
-        {/* ── By theme ── */}
+        {/* ── By series ── */}
         <div className="bg-white rounded-2xl border border-rich-black/8 p-4">
-          <p className="text-sm font-semibold text-rich-black mb-3">By theme</p>
-          {byType.length === 0
-            ? <p className="text-xs text-stone-300">No content yet</p>
-            : byType.map(t => <Bar key={t.label} label={t.label} value={t.count} max={maxType} count={t.count}
-                color={INTENT_META[t.bucket]?.color || PINK} />)}
+          <p className="text-sm font-semibold text-rich-black mb-3">By series</p>
+          {bySeries.length === 0
+            ? <p className="text-xs text-rich-black/20">No content yet</p>
+            : bySeries.map(t => <Bar key={t.label} label={t.label} value={t.count} max={maxSeries} count={t.count}
+                color={t.color} />)}
         </div>
       </div>
 

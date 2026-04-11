@@ -173,7 +173,7 @@ function DetailPanel({ item, campaigns, onClose, onEdit, commentCount = 0 }) {
 }
 
 // ── Main Grid View ─────────────────────────────────────────────────────────
-export function InstagramGrid({ items, addItem, updateItem, deleteItem, campaigns, products, setProducts, currentMember, commentCounts = {} }) {
+export function InstagramGrid({ items, addItem, updateItem, deleteItem, campaigns, products, setProducts, currentMember, commentCounts = {}, contentSeries = [] }) {
   const [selected, setSelected] = useState(null);
   const [editItem, setEditItem] = useState(null);
   const [showEditForm, setShowEditForm] = useState(false);
@@ -384,6 +384,7 @@ export function InstagramGrid({ items, addItem, updateItem, deleteItem, campaign
             products={products}
             setProducts={setProducts}
             currentMember={currentMember}
+            contentSeries={contentSeries}
           />
         </Modal>
       )}
