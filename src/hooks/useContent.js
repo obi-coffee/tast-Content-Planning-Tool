@@ -31,18 +31,25 @@ function toDb(item) {
   if (campaignId   !== undefined) out.campaign_id   = campaignId || null
   if (assigneeId   !== undefined) out.assignee_id   = assigneeId || null
   if (channels     !== undefined) out.channels      = channelsToDb(channels)
-  if (metrics      !== undefined) out.metrics       = metrics
-  if (emailSubject !== undefined) out.email_subject = emailSubject || null
-  if (emailPreview !== undefined) out.email_preview = emailPreview || null
-  if (emailBody    !== undefined) out.email_body    = emailBody || null
-  if (emailCta     !== undefined) out.email_cta     = emailCta || null
+  // Pack metrics + email fields into a single JSONB column
+  const mergedMetrics = { ...(metrics || {}) }
+  if (emailSubject !== undefined || emailPreview !== undefined || emailBody !== undefined || emailCta !== undefined) {
+    mergedMetrics.email = {
+      subject: emailSubject || '',
+      preview: emailPreview || '',
+      body: emailBody || '',
+      cta: emailCta || '',
+    }
+  }
+  out.metrics = mergedMetrics
   return out
 }
 
 function fromDb(row) {
   if (!row) return row
-  const { draft_copy, drive_url, drive_urls, campaign_id, assignee_id, channels, metrics,
-          email_subject, email_preview, email_body, email_cta, ...rest } = row
+  const { draft_copy, drive_url, drive_urls, campaign_id, assignee_id, channels, metrics, ...rest } = row
+  const m = metrics || {}
+  const email = m.email || {}
   return {
     ...rest,
     channels:     channelsFromDb(channels),
@@ -51,11 +58,11 @@ function fromDb(row) {
     driveUrls:    Array.isArray(drive_urls) ? drive_urls : [],
     campaignId:   campaign_id   ?? '',
     assigneeId:   assignee_id   ?? '',
-    metrics:      metrics || { likes: '', comments: '', saves: '', shares: '' },
-    emailSubject: email_subject ?? '',
-    emailPreview: email_preview ?? '',
-    emailBody:    email_body    ?? '',
-    emailCta:     email_cta     ?? '',
+    metrics:      { likes: m.likes ?? '', comments: m.comments ?? '', saves: m.saves ?? '', shares: m.shares ?? '' },
+    emailSubject: email.subject ?? '',
+    emailPreview: email.preview ?? '',
+    emailBody:    email.body    ?? '',
+    emailCta:     email.cta     ?? '',
   }
 }
 
