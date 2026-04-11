@@ -20,10 +20,13 @@ function channelsFromDb(raw) {
   return { primary: '', secondary: [] }
 }
 
+// Separator used to store structured data at the end of notes
+const NOTES_DATA_SEP = '\n\n---tast-meta---\n'
+
 function toDb(item) {
   if (!item) return item
-  const { draftCopy, driveUrl, driveUrls, campaignId, assigneeId, channels, metrics,
-          emailSubject, emailPreview, emailBody, emailCta, ...rest } = item
+  const { draftCopy, driveUrl, driveUrls, campaignId, assigneeId, channels,
+          metrics, emailSubject, emailPreview, emailBody, emailCta, ...rest } = item
   const out = { ...rest }
   if (draftCopy    !== undefined) out.draft_copy    = draftCopy  || null
   if (driveUrl     !== undefined) out.drive_url     = driveUrl   || null
@@ -31,34 +34,52 @@ function toDb(item) {
   if (campaignId   !== undefined) out.campaign_id   = campaignId || null
   if (assigneeId   !== undefined) out.assignee_id   = assigneeId || null
   if (channels     !== undefined) out.channels      = channelsToDb(channels)
-  // Pack metrics + email fields into a single JSONB column
-  const mergedMetrics = { ...(metrics || {}) }
-  if (emailSubject !== undefined || emailPreview !== undefined || emailBody !== undefined || emailCta !== undefined) {
-    mergedMetrics.email = {
-      subject: emailSubject || '',
-      preview: emailPreview || '',
-      body: emailBody || '',
-      cta: emailCta || '',
-    }
+
+  // Pack metrics + email fields into notes as JSON (no extra DB columns needed)
+  const meta = {}
+  if (metrics && (metrics.likes || metrics.comments || metrics.saves || metrics.shares)) {
+    meta.metrics = metrics
   }
-  out.metrics = mergedMetrics
+  if (emailSubject || emailPreview || emailBody || emailCta) {
+    meta.email = { subject: emailSubject || '', preview: emailPreview || '', body: emailBody || '', cta: emailCta || '' }
+  }
+
+  // Append meta to notes if we have any
+  const userNotes = (out.notes || '').split(NOTES_DATA_SEP)[0].trim()
+  if (Object.keys(meta).length > 0) {
+    out.notes = userNotes + NOTES_DATA_SEP + JSON.stringify(meta)
+  } else {
+    out.notes = userNotes || null
+  }
+
   return out
 }
 
 function fromDb(row) {
   if (!row) return row
-  const { draft_copy, drive_url, drive_urls, campaign_id, assignee_id, channels, metrics, ...rest } = row
-  const m = metrics || {}
-  const email = m.email || {}
+  const { draft_copy, drive_url, drive_urls, campaign_id, assignee_id, channels, ...rest } = row
+
+  // Extract meta from notes
+  let notes = rest.notes || ''
+  let meta = {}
+  if (notes.includes(NOTES_DATA_SEP)) {
+    const parts = notes.split(NOTES_DATA_SEP)
+    notes = parts[0].trim()
+    try { meta = JSON.parse(parts[1]) } catch(e) { /* ignore parse errors */ }
+  }
+  const email = meta.email || {}
+  const metrics = meta.metrics || { likes: '', comments: '', saves: '', shares: '' }
+
   return {
     ...rest,
+    notes,
     channels:     channelsFromDb(channels),
     draftCopy:    draft_copy    ?? '',
     driveUrl:     drive_url     ?? '',
     driveUrls:    Array.isArray(drive_urls) ? drive_urls : [],
     campaignId:   campaign_id   ?? '',
     assigneeId:   assignee_id   ?? '',
-    metrics:      { likes: m.likes ?? '', comments: m.comments ?? '', saves: m.saves ?? '', shares: m.shares ?? '' },
+    metrics,
     emailSubject: email.subject ?? '',
     emailPreview: email.preview ?? '',
     emailBody:    email.body    ?? '',
