@@ -7,6 +7,7 @@ import { Analytics } from "./Analytics.jsx";
 import { useContent, useCampaigns, useProducts, useBrandVoice } from "./hooks/useContent.js";
 import { useTeamMember } from "./hooks/useTeamMember.js";
 import { useCommentCounts } from "./hooks/useCommentCounts.js";
+import { useContentSeries } from "./hooks/useContentSeries.js";
 import TeamPicker from "./components/TeamPicker.jsx";
 import { Avatar } from "./components/Avatar.jsx";
 import { ToastProvider, useToast } from "./components/Toast.jsx";
@@ -48,6 +49,7 @@ function AppInner() {
   const { products,  loading: productsLoading,  addProduct,   deleteProduct                    } = useProducts();
   const { voice: brandVoice, setVoice: setBrandVoice                                           } = useBrandVoice(defaultBrandVoice);
   const commentCounts = useCommentCounts();
+  const { series: contentSeries, addSeries, updateSeries, deleteSeries } = useContentSeries();
   const toast = useToast();
 
   // ── Team identity ───────────────────────────────────────────────────────
@@ -157,13 +159,13 @@ function AppInner() {
             </div>
           ) : (
             <>
-              {activeTab === "pipeline"  && <Pipeline    items={items} addItem={addItemWithToast} updateItem={updateItemWithToast} deleteItem={deleteItemWithToast} campaigns={campaigns} products={products} setProducts={setProducts} currentMember={member} commentCounts={commentCounts} />}
-              {activeTab === "calendar"  && <Calendar    items={items} addItem={addItemWithToast} updateItem={updateItemWithToast} deleteItem={deleteItemWithToast} campaigns={campaigns} products={products} setProducts={setProducts} currentMember={member} commentCounts={commentCounts} />}
-              {activeTab === "campaigns" && <Campaigns   campaigns={campaigns} addCampaign={addCampaignWithToast} updateCampaign={updateCampaign} deleteCampaign={deleteCampaignWithToast} allItems={items} addItem={addItemWithToast} updateItem={updateItemWithToast} deleteItem={deleteItemWithToast} products={products} setProducts={setProducts} currentMember={member} commentCounts={commentCounts} />}
-              {activeTab === "grid"      && <InstagramGrid items={items} addItem={addItemWithToast} updateItem={updateItemWithToast} deleteItem={deleteItemWithToast} campaigns={campaigns} products={products} setProducts={setProducts} currentMember={member} commentCounts={commentCounts} />}
-              {activeTab === "analytics" && <Analytics   items={items} campaigns={campaigns} updateItem={updateItemWithToast} />}
+              {activeTab === "pipeline"  && <Pipeline    items={items} addItem={addItemWithToast} updateItem={updateItemWithToast} deleteItem={deleteItemWithToast} campaigns={campaigns} products={products} setProducts={setProducts} currentMember={member} commentCounts={commentCounts} contentSeries={contentSeries} addSeries={addSeries} updateSeriesItem={updateSeries} deleteSeries={deleteSeries} />}
+              {activeTab === "calendar"  && <Calendar    items={items} addItem={addItemWithToast} updateItem={updateItemWithToast} deleteItem={deleteItemWithToast} campaigns={campaigns} products={products} setProducts={setProducts} currentMember={member} commentCounts={commentCounts} contentSeries={contentSeries} addSeries={addSeries} updateSeriesItem={updateSeries} deleteSeries={deleteSeries} />}
+              {activeTab === "campaigns" && <Campaigns   campaigns={campaigns} addCampaign={addCampaignWithToast} updateCampaign={updateCampaign} deleteCampaign={deleteCampaignWithToast} allItems={items} addItem={addItemWithToast} updateItem={updateItemWithToast} deleteItem={deleteItemWithToast} products={products} setProducts={setProducts} currentMember={member} commentCounts={commentCounts} contentSeries={contentSeries} />}
+              {activeTab === "grid"      && <InstagramGrid items={items} addItem={addItemWithToast} updateItem={updateItemWithToast} deleteItem={deleteItemWithToast} campaigns={campaigns} products={products} setProducts={setProducts} currentMember={member} commentCounts={commentCounts} contentSeries={contentSeries} />}
+              {activeTab === "analytics" && <Analytics   items={items} campaigns={campaigns} updateItem={updateItemWithToast} contentSeries={contentSeries} />}
               {activeTab === "brandvoice" && <BrandVoice  voice={brandVoice} setVoice={setBrandVoice} />}
-              {activeTab === "captions"  && <Captions    brandVoice={brandVoice} />}
+              {activeTab === "captions"  && <Captions    brandVoice={brandVoice} contentSeries={contentSeries} />}
             </>
           )}
         </div>

@@ -6,55 +6,36 @@ import { CONTENT_TEMPLATES } from "./lib/templates.js";
 export const PIPELINE_STAGES = ["Idea", "In Campaign", "In Production", "Ready", "Published"];
 export const CHANNEL_OPTIONS = ["Instagram", "Email", "Website", "Instagram Reels", "LinkedIn"];
 
-// ── 13 content themes from the Instagram plan ─────────────────────────────
+// ── Legacy theme list (kept for backward compat with existing items) ─────
 export const TYPE_OPTIONS = [
-  "The Build",
-  "The Problem",
-  "Roaster Love",
-  "Coffee Life",
-  "Taste Story",
-  "Waitlist",
-  "Trade Show",
-  "Beta Launch",
-  "Community",
-  "Launch",
-  "Vol. 3 Tease",
-  "Vol. 3 Reveal",
-  "Vol. 3 Drop",
+  "The Build", "The Problem", "Roaster Love", "Coffee Life", "Taste Story",
+  "Waitlist", "Trade Show", "Beta Launch", "Community", "Launch",
+  "Vol. 3 Tease", "Vol. 3 Reveal", "Vol. 3 Drop",
 ];
 
-// Strategic intent: maps each theme to 70/20/10 bucket
-// culture = 70%, brand = 20%, conversion = 10%
+// Legacy intent mapping — kept for analytics on old items
 export const INTENT_BUCKET = {
-  "The Build":      "brand",
-  "The Problem":    "culture",
-  "Roaster Love":   "culture",
-  "Coffee Life":    "culture",
-  "Taste Story":    "culture",
-  "Waitlist":       "conversion",
-  "Trade Show":     "brand",
-  "Beta Launch":    "conversion",
-  "Community":      "culture",
-  "Launch":         "conversion",
-  "Vol. 3 Tease":   "brand",
-  "Vol. 3 Reveal":  "brand",
-  "Vol. 3 Drop":    "conversion",
+  "The Build":"brand","The Problem":"culture","Roaster Love":"culture",
+  "Coffee Life":"culture","Taste Story":"culture","Waitlist":"conversion",
+  "Trade Show":"brand","Beta Launch":"conversion","Community":"culture",
+  "Launch":"conversion","Vol. 3 Tease":"brand","Vol. 3 Reveal":"brand","Vol. 3 Drop":"conversion",
 };
-
 export const INTENT_META = {
   culture:    { label: "Culture & Community", target: 70, color: "#F05881" },
-  brand:      { label: "Product & Brand",     target: 20, color: "#a12f52" },
-  conversion: { label: "Direct Conversion",   target: 10, color: "#ef4056" },
+  brand:      { label: "Product & Brand",     target: 20, color: "#A23053" },
+  conversion: { label: "Direct Conversion",   target: 10, color: "#EF4056" },
 };
 
-// Post format options from the plan
-export const FORMAT_OPTIONS = [
-  "Single Photo",
-  "Carousel",
-  "Graphic / Text",
-  "Story",
-  "Repost / UGC",
-];
+// Legacy theme colors — used as fallback for old items
+export const TYPE_COLORS = {
+  "The Build":"bg-rich-black/8 text-rich-black/60","The Problem":"bg-pink/15 text-raspberry",
+  "Roaster Love":"bg-pink/15 text-raspberry","Coffee Life":"bg-pink/15 text-raspberry",
+  "Taste Story":"bg-pink/15 text-raspberry","Waitlist":"bg-no3/15 text-raspberry",
+  "Trade Show":"bg-rich-black/8 text-rich-black/60","Beta Launch":"bg-no3/15 text-no3",
+  "Community":"bg-pink/10 text-raspberry","Launch":"bg-raspberry/20 text-raspberry",
+  "Vol. 3 Tease":"bg-violet-100 text-violet-700","Vol. 3 Reveal":"bg-violet-200 text-violet-800",
+  "Vol. 3 Drop":"bg-violet-300 text-violet-900",
+};
 
 // Phases from the 36-week plan
 export const PHASES = [
@@ -77,22 +58,156 @@ export const STAGE_META = {
   "Published":     { color: "#a12f52", light: "#fdf0f4" },
 };
 
-// Theme tag colors — Vol. 3 gets distinct purple-ish tones to stand out
-export const TYPE_COLORS = {
-  "The Build":      "bg-stone-100 text-stone-600",
-  "The Problem":    "bg-[#fa8f9c]/20 text-[#a12f52]",
-  "Roaster Love":   "bg-[#F05881]/15 text-[#a12f52]",
-  "Coffee Life":    "bg-[#fa8f9c]/25 text-[#a12f52]",
-  "Taste Story":    "bg-[#F05881]/20 text-[#a12f52]",
-  "Waitlist":       "bg-[#ef4056]/15 text-[#a12f52]",
-  "Trade Show":     "bg-stone-200 text-stone-600",
-  "Beta Launch":    "bg-[#ef4056]/20 text-[#ef4056]",
-  "Community":      "bg-[#F05881]/10 text-[#a12f52]",
-  "Launch":         "bg-[#a12f52]/20 text-[#a12f52]",
-  "Vol. 3 Tease":   "bg-violet-100 text-violet-700",
-  "Vol. 3 Reveal":  "bg-violet-200 text-violet-800",
-  "Vol. 3 Drop":    "bg-violet-300 text-violet-900",
-};
+// Post format options
+export const FORMAT_OPTIONS = [
+  "Single Photo",
+  "Carousel",
+  "Graphic / Text",
+  "Story",
+  "Repost / UGC",
+];
+
+// ── Series helpers ────────────────────────────────────────────────────────
+export function getSeriesColor(seriesName, seriesList) {
+  const s = (seriesList || []).find(s => s.name === seriesName);
+  return s?.color || '#1A1A1A';
+}
+
+export function SeriesTag({ name, seriesList }) {
+  const color = getSeriesColor(name, seriesList);
+  if (!name) return null;
+  return (
+    <span className="text-xs px-2 py-0.5 rounded-full font-medium font-inter"
+      style={{ background: color + '18', color }}>
+      {name}
+    </span>
+  );
+}
+
+// ── Series Picker (for ContentForm) ───────────────────────────────────────
+export function SeriesPicker({ value, onChange, series = [], onManage }) {
+  return (
+    <div className="mb-3">
+      <div className="flex items-center justify-between mb-1.5">
+        <label className="font-mono text-[9px] uppercase tracking-widest text-rich-black/40">Content Series</label>
+        {onManage && (
+          <button type="button" onClick={onManage} className="text-[10px] font-inter font-medium text-pink hover:opacity-70">
+            + Manage series
+          </button>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <button type="button" onClick={() => onChange("")}
+          className="text-xs px-3 py-1.5 rounded-full border font-medium font-inter transition-all duration-150"
+          style={!value ? { background: "#1A1A1A", color: "#fff", borderColor: "#1A1A1A" } : { borderColor: "#1A1A1A15", color: "#1A1A1A60" }}>
+          None
+        </button>
+        {series.map(s => (
+          <button key={s.id} type="button" onClick={() => onChange(s.name)}
+            className="text-xs px-3 py-1.5 rounded-full border font-medium font-inter transition-all duration-150"
+            style={value === s.name
+              ? { background: s.color, color: "#fff", borderColor: s.color }
+              : { borderColor: s.color + '40', color: s.color }}>
+            {s.name}
+          </button>
+        ))}
+      </div>
+      {value && (() => {
+        const matched = series.find(s => s.name === value);
+        return matched?.description ? (
+          <p className="text-[11px] text-rich-black/30 mt-1.5 italic font-arizona">{matched.description}</p>
+        ) : null;
+      })()}
+    </div>
+  );
+}
+
+// ── Series Manager Modal ──────────────────────────────────────────────────
+const SERIES_COLORS = ['#F05881', '#A23053', '#EF4056', '#F287B7', '#1A1A1A', '#6366f1', '#0891b2', '#16a34a', '#ca8a04', '#ea580c'];
+
+export function SeriesManager({ series, onAdd, onUpdate, onDelete, onClose }) {
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [primaryChannel, setPrimaryChannel] = useState("Instagram");
+  const [color, setColor] = useState(SERIES_COLORS[0]);
+  const [editId, setEditId] = useState(null);
+
+  const handleSave = () => {
+    if (!name.trim()) return;
+    if (editId) {
+      onUpdate(editId, { name: name.trim(), description: description.trim(), primaryChannel, color });
+      setEditId(null);
+    } else {
+      onAdd({ name: name.trim(), description: description.trim(), primaryChannel, color });
+    }
+    setName(""); setDescription(""); setPrimaryChannel("Instagram"); setColor(SERIES_COLORS[0]);
+  };
+
+  const startEdit = (s) => {
+    setEditId(s.id); setName(s.name); setDescription(s.description || "");
+    setPrimaryChannel(s.primaryChannel || "Instagram"); setColor(s.color || SERIES_COLORS[0]);
+  };
+
+  return (
+    <Modal title="Content Series" onClose={onClose}>
+      <p className="text-xs text-rich-black/30 mb-4">Create and manage your content series. Each series groups related content around a theme or format.</p>
+
+      <div className="bg-london-fog rounded-xl p-4 mb-5 border border-rich-black/8">
+        <p className="font-mono text-[9px] uppercase tracking-widest text-rich-black/35 mb-3">
+          {editId ? "Edit Series" : "New Series"}
+        </p>
+        <Inp label="Series name" value={name} onChange={e => setName(e.target.value)} placeholder='e.g. "Marginalia"' />
+        <Inp label="Description" value={description} onChange={e => setDescription(e.target.value)} placeholder="What is this series about?" />
+        <Sel label="Primary channel" options={CHANNEL_OPTIONS} value={primaryChannel} onChange={e => setPrimaryChannel(e.target.value)} />
+        <div className="mb-3">
+          <label className="block font-mono text-[9px] uppercase tracking-widest text-rich-black/40 mb-1.5">Color</label>
+          <div className="flex gap-2 flex-wrap">
+            {SERIES_COLORS.map(c => (
+              <button key={c} type="button" onClick={() => setColor(c)}
+                className="w-7 h-7 rounded-full transition-all duration-150"
+                style={{ background: c, outline: color === c ? `2px solid ${c}` : '2px solid transparent', outlineOffset: 2 }} />
+            ))}
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={handleSave} disabled={!name.trim()}
+            className="flex-1 bg-pink disabled:bg-rich-black/10 disabled:text-rich-black/30 text-white py-2 rounded-lg font-medium text-sm font-inter transition-all hover:opacity-90">
+            {editId ? "Update" : "Add Series"}
+          </button>
+          {editId && (
+            <button onClick={() => { setEditId(null); setName(""); setDescription(""); }}
+              className="px-3 py-2 text-sm text-rich-black/30 hover:text-rich-black font-inter">Cancel</button>
+          )}
+        </div>
+      </div>
+
+      <p className="font-mono text-[9px] uppercase tracking-widest text-rich-black/35 mb-2">Your Series ({series.length})</p>
+      {series.length === 0
+        ? <p className="text-sm text-rich-black/20">No series yet — create your first one above.</p>
+        : (
+          <div className="space-y-1.5">
+            {series.map(s => (
+              <div key={s.id} className="flex items-center justify-between bg-white rounded-xl border border-rich-black/8 px-3 py-2.5">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-3 h-3 rounded-full shrink-0" style={{ background: s.color }} />
+                  <div>
+                    <p className="text-sm font-medium text-rich-black font-inter">{s.name}</p>
+                    {s.description && <p className="text-xs text-rich-black/30">{s.description}</p>}
+                    {s.primaryChannel && <p className="text-[10px] font-mono text-rich-black/20 mt-0.5">{s.primaryChannel}</p>}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => startEdit(s)} className="text-xs text-rich-black/30 hover:text-rich-black transition-colors font-inter">edit</button>
+                  <button onClick={() => onDelete(s.id)} className="text-xs text-rich-black/20 hover:text-no3 transition-colors font-inter">remove</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )
+      }
+    </Modal>
+  );
+}
 
 export const defaultBrandVoice = `TONE
 Warm, knowledgeable, and quietly confident. We don't preach — we invite. Think of a well-traveled friend who knows everything about coffee and shares generously, without gatekeeping.
@@ -455,11 +570,12 @@ export function CampaignProgress({ items }) {
   );
 }
 
-export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, lockCampaignId, products=[], setProducts=()=>{}, onOpenComments, currentMember }) {
+export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, lockCampaignId, products=[], setProducts=()=>{}, onOpenComments, currentMember, contentSeries=[], onManageSeries }) {
   const [showTemplates, setShowTemplates] = useState(false);
+  const [showSeriesManager, setShowSeriesManager] = useState(false);
   const [form, setForm] = useState(() => {
     const base = {
-      title:"", type:TYPE_OPTIONS[0],
+      title:"", type:"",
       channels: { primary: "Instagram", secondary: [] },
       format: FORMAT_OPTIONS[0],
       stage:"Idea", campaignId:"", date:"", notes:"", product:"",
@@ -534,20 +650,7 @@ export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, loc
         <Inp label="Title" value={form.title} onChange={e=>f("title",e.target.value)} placeholder="Content title" />
         <ProductSelector value={form.product} onChange={v=>f("product",v)} products={products} onManage={()=>setShowProductManager(true)} />
         {showProductManager && <ProductManager products={products} setProducts={setProducts} onClose={()=>setShowProductManager(false)} />}
-        <Sel label="Content type / theme" options={TYPE_OPTIONS} value={form.type} onChange={e=>f("type",e.target.value)} />
-
-        {form.type && INTENT_BUCKET[form.type] && (() => {
-          const bucket = INTENT_BUCKET[form.type];
-          const meta = INTENT_META[bucket];
-          return (
-            <div className="mb-3 -mt-1 flex items-center gap-1.5">
-              <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: meta.color + "18", color: meta.color }}>
-                {meta.label}
-              </span>
-              <span className="text-xs text-stone-300">{bucket === "culture" ? "70%" : bucket === "brand" ? "20%" : "10%"} bucket</span>
-            </div>
-          );
-        })()}
+        <SeriesPicker value={form.type} onChange={v=>f("type",v)} series={contentSeries} onManage={onManageSeries} />
 
         <FormatPicker value={form.format||FORMAT_OPTIONS[0]} onChange={v=>f("format",v)} />
         <ChannelPicker selected={form.channels} onChange={v=>f("channels",v)} />
