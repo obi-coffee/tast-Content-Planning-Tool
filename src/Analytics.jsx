@@ -10,9 +10,9 @@ const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct"
 function StatCard({ label, value, sub, color = "#1a1a1a", accent }) {
   return (
     <div className="bg-white rounded-2xl border border-rich-black/8 p-4 flex flex-col gap-1">
-      <p className="text-xs text-stone-400 font-medium uppercase tracking-wider">{label}</p>
+      <p className="text-xs text-rich-black/30 font-medium uppercase tracking-wider">{label}</p>
       <p className="text-3xl font-bold leading-none" style={{ color: color }}>{value}</p>
-      {sub && <p className="text-xs text-stone-400 mt-0.5">{sub}</p>}
+      {sub && <p className="text-xs text-rich-black/30 mt-0.5">{sub}</p>}
       {accent && <div className="mt-2 h-1 rounded-full" style={{ background: accent, width: "40%" }} />}
     </div>
   );
@@ -23,11 +23,11 @@ function Bar({ label, value, max, color, count }) {
   const pct = max > 0 ? (value / max) * 100 : 0;
   return (
     <div className="flex items-center gap-3 mb-2">
-      <p className="text-xs text-stone-600 w-28 shrink-0 truncate">{label}</p>
-      <div className="flex-1 h-2 bg-stone-100 rounded-full overflow-hidden">
+      <p className="text-xs text-rich-black/50 w-28 shrink-0 truncate">{label}</p>
+      <div className="flex-1 h-2 bg-rich-black/5 rounded-full overflow-hidden">
         <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color || PINK }} />
       </div>
-      <p className="text-xs text-stone-400 w-6 text-right">{count}</p>
+      <p className="text-xs text-rich-black/30 w-6 text-right">{count}</p>
     </div>
   );
 }
@@ -108,11 +108,11 @@ function PostingHeatmap({ items }) {
         ))}
       </div>
       <div className="flex items-center gap-2 mt-2">
-        <span className="text-xs text-stone-300">Less</span>
+        <span className="text-xs text-rich-black/20">Less</span>
         {[0.15, 0.35, 0.55, 0.75, 0.95].map(o => (
           <div key={o} className="w-3 h-3 rounded-sm" style={{ background: `rgba(240,88,129,${o})` }} />
         ))}
-        <span className="text-xs text-stone-300">More</span>
+        <span className="text-xs text-rich-black/20">More</span>
       </div>
     </div>
   );
@@ -153,7 +153,7 @@ function CadenceChart({ items }) {
             <div className="w-full rounded-t-sm transition-all"
               style={{ height: `${((m.count - m.published) / max) * 100}%`, background: PINK + "33", minHeight: (m.count - m.published) > 0 ? 4 : 0 }} />
           </div>
-          <p className="text-xs text-stone-400">{m.label}</p>
+          <p className="text-xs text-rich-black/30">{m.label}</p>
         </div>
       ))}
     </div>
@@ -253,15 +253,15 @@ function GapDetector({ items }) {
             <div className="w-2 h-2 rounded-full mt-1.5 shrink-0" style={{ background: s.dot }} />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-rich-black">{g.label}</p>
-              <p className="text-xs text-stone-500 mt-0.5">{g.detail}</p>
+              <p className="text-xs text-rich-black/40 mt-0.5">{g.detail}</p>
               {g.items.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-2">
                   {g.items.slice(0, 4).map(item => (
-                    <span key={item.id} className="text-xs px-2 py-0.5 rounded-full bg-white/70 text-stone-600 border border-stone-200">
+                    <span key={item.id} className="text-xs px-2 py-0.5 rounded-full bg-white/70 text-rich-black/50 border border-rich-black/12">
                       {item.title}
                     </span>
                   ))}
-                  {g.items.length > 4 && <span className="text-xs text-stone-400">+{g.items.length - 4} more</span>}
+                  {g.items.length > 4 && <span className="text-xs text-rich-black/30">+{g.items.length - 4} more</span>}
                 </div>
               )}
             </div>
@@ -384,7 +384,7 @@ function SmartRecommendations({ items }) {
             <div className="w-2 h-2 rounded-full mt-1.5 shrink-0" style={{ background: s.dot }} />
             <div>
               <p className="text-sm font-semibold text-rich-black">{r.message}</p>
-              <p className="text-xs text-stone-500 mt-0.5">{r.detail}</p>
+              <p className="text-xs text-rich-black/40 mt-0.5">{r.detail}</p>
             </div>
           </div>
         );
@@ -424,8 +424,8 @@ function PerformanceMetrics({ items }) {
   if (totals.count === 0) {
     return (
       <div className="text-center py-6">
-        <p className="text-xs text-stone-400">No performance data yet.</p>
-        <p className="text-xs text-stone-300 mt-1">Add metrics to published content to see engagement insights.</p>
+        <p className="text-xs text-rich-black/30">No performance data yet.</p>
+        <p className="text-xs text-rich-black/20 mt-1">Add metrics to published content to see engagement insights.</p>
       </div>
     );
   }
@@ -441,19 +441,19 @@ function PerformanceMetrics({ items }) {
         ].map(s => (
           <div key={s.label} className="text-center">
             <p className="text-lg font-bold" style={{ color: s.color }}>{s.value}</p>
-            <p className="text-xs text-stone-400">{s.label}</p>
+            <p className="text-xs text-rich-black/30">{s.label}</p>
           </div>
         ))}
       </div>
       {topPosts.length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-2">Top performing</p>
+          <p className="text-xs font-semibold text-rich-black/40 uppercase tracking-wider mb-2">Top performing</p>
           {topPosts.map((p, i) => (
             <div key={p.id} className="flex items-center gap-3 mb-2">
-              <span className="text-xs font-bold text-stone-300 w-4">#{i + 1}</span>
+              <span className="text-xs font-bold text-rich-black/20 w-4">#{i + 1}</span>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-stone-700 truncate">{p.title}</p>
-                <p className="text-xs text-stone-400">{p.type} · {p.format}</p>
+                <p className="text-sm font-medium text-rich-black/60 truncate">{p.title}</p>
+                <p className="text-xs text-rich-black/30">{p.type} · {p.format}</p>
               </div>
               <span className="text-sm font-bold shrink-0" style={{ color: PINK }}>{p.totalEng}</span>
             </div>
@@ -550,7 +550,7 @@ export function Analytics({ items, campaigns, updateItem, contentSeries = [] }) 
       <div className="flex items-center justify-between mb-5">
         <div>
           <h2 className="font-inter text-xl font-bold text-rich-black">Analytics</h2>
-          <p className="text-xs text-stone-400 mt-0.5">Pipeline health · posting cadence · gaps</p>
+          <p className="text-xs text-rich-black/30 mt-0.5">Pipeline health · posting cadence · gaps</p>
         </div>
       </div>
 
@@ -567,9 +567,9 @@ export function Analytics({ items, campaigns, updateItem, contentSeries = [] }) 
         <div className="flex items-start justify-between mb-3">
           <div>
             <p className="text-sm font-semibold text-rich-black">Content ratio</p>
-            <p className="text-xs text-stone-400">Target: 70% culture · 20% brand · 10% conversion</p>
+            <p className="text-xs text-rich-black/30">Target: 70% culture · 20% brand · 10% conversion</p>
           </div>
-          {intentTotal === 0 && <span className="text-xs text-stone-300">No themed posts yet</span>}
+          {intentTotal === 0 && <span className="text-xs text-rich-black/20">No themed posts yet</span>}
         </div>
         {intentTotal > 0 && (
           <>
@@ -594,15 +594,15 @@ export function Analytics({ items, campaigns, updateItem, contentSeries = [] }) 
                 const onTrack = Math.abs(diff) <= 8;
                 return (
                   <div key={bucket} className="rounded-xl p-3 border" style={{ borderColor: meta.color + "33", background: meta.color + "08" }}>
-                    <p className="text-xs font-medium text-stone-500 mb-1">{meta.label}</p>
+                    <p className="text-xs font-medium text-rich-black/40 mb-1">{meta.label}</p>
                     <div className="flex items-end gap-1.5">
                       <span className="text-2xl font-bold leading-none" style={{ color: meta.color }}>{actual}%</span>
-                      <span className="text-xs text-stone-400 mb-0.5">/ {target}% target</span>
+                      <span className="text-xs text-rich-black/30 mb-0.5">/ {target}% target</span>
                     </div>
                     <p className="text-xs mt-1.5 font-medium" style={{ color: onTrack ? "#22c55e" : diff > 0 ? meta.color : "#f59e0b" }}>
                       {onTrack ? "✓ On track" : diff > 0 ? `↑ ${diff}% over` : `↓ ${Math.abs(diff)}% under`}
                     </p>
-                    <p className="text-xs text-stone-300 mt-0.5">{count} post{count !== 1 ? "s" : ""}</p>
+                    <p className="text-xs text-rich-black/20 mt-0.5">{count} post{count !== 1 ? "s" : ""}</p>
                   </div>
                 );
               })}
@@ -627,7 +627,7 @@ export function Analytics({ items, campaigns, updateItem, contentSeries = [] }) 
       <div className="bg-white rounded-2xl border border-rich-black/8 p-4 mb-5">
         <div className="mb-3">
           <p className="text-sm font-semibold text-rich-black">Phase progress</p>
-          <p className="text-xs text-stone-400">36-week plan · Feb 23 → Oct 26, 2026</p>
+          <p className="text-xs text-rich-black/30">36-week plan · Feb 23 → Oct 26, 2026</p>
         </div>
         <div className="space-y-3">
           {phaseStats.map(p => {
@@ -645,30 +645,30 @@ export function Analytics({ items, campaigns, updateItem, contentSeries = [] }) 
                       {p.isActive && (
                         <span className="text-xs px-1.5 py-0.5 rounded-full font-semibold" style={{ background: p.color, color: "white" }}>Active</span>
                       )}
-                      {p.isPast && <span className="text-xs text-stone-300">Complete</span>}
+                      {p.isPast && <span className="text-xs text-rich-black/20">Complete</span>}
                     </div>
-                    <p className="text-xs text-stone-400 mt-0.5">{p.subtitle}</p>
-                    <p className="text-xs text-stone-300 mt-0.5">{p.start} → {p.end}</p>
+                    <p className="text-xs text-rich-black/30 mt-0.5">{p.subtitle}</p>
+                    <p className="text-xs text-rich-black/20 mt-0.5">{p.start} → {p.end}</p>
                   </div>
                   <div className="text-right shrink-0">
                     <p className="text-lg font-bold leading-none" style={{ color: p.color }}>{p.planned}</p>
-                    <p className="text-xs text-stone-400">posts</p>
+                    <p className="text-xs text-rich-black/30">posts</p>
                   </div>
                 </div>
                 {/* Post progress bar */}
                 {p.planned > 0 && (
                   <div className="mb-2">
-                    <div className="flex justify-between text-xs text-stone-400 mb-1">
+                    <div className="flex justify-between text-xs text-rich-black/30 mb-1">
                       <span>{p.published} published</span>
                       <span>{p.planned - p.published} remaining</span>
                     </div>
-                    <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
+                    <div className="h-2 bg-rich-black/5 rounded-full overflow-hidden">
                       <div className="h-full rounded-full transition-all" style={{ width: `${postPct}%`, background: p.color }} />
                     </div>
                   </div>
                 )}
                 {p.planned === 0 && (
-                  <p className="text-xs text-stone-300 italic">No posts scheduled for this phase yet</p>
+                  <p className="text-xs text-rich-black/20 italic">No posts scheduled for this phase yet</p>
                 )}
               </div>
             );
@@ -682,21 +682,21 @@ export function Analytics({ items, campaigns, updateItem, contentSeries = [] }) 
           <div className="flex items-start justify-between mb-3">
             <div>
               <p className="text-sm font-semibold text-rich-black">Monthly cadence</p>
-              <p className="text-xs text-stone-400">Last 6 months</p>
+              <p className="text-xs text-rich-black/30">Last 6 months</p>
             </div>
             <Sparkline data={sparkData} width={80} height={28} />
           </div>
           <CadenceChart items={items} />
           <div className="flex items-center gap-4 mt-3">
-            <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm" style={{ background: PINK }} /><span className="text-xs text-stone-400">Published</span></div>
-            <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm" style={{ background: PINK + "33" }} /><span className="text-xs text-stone-400">Planned</span></div>
+            <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm" style={{ background: PINK }} /><span className="text-xs text-rich-black/30">Published</span></div>
+            <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm" style={{ background: PINK + "33" }} /><span className="text-xs text-rich-black/30">Planned</span></div>
           </div>
         </div>
 
         {/* ── Gap detector ── */}
         <div className="bg-white rounded-2xl border border-rich-black/8 p-4">
           <p className="text-sm font-semibold text-rich-black mb-1">Pipeline health</p>
-          <p className="text-xs text-stone-400 mb-3">Overdue, stale, and gaps</p>
+          <p className="text-xs text-rich-black/30 mb-3">Overdue, stale, and gaps</p>
           <GapDetector items={items} />
         </div>
       </div>
@@ -725,7 +725,7 @@ export function Analytics({ items, campaigns, updateItem, contentSeries = [] }) 
         {/* ── Posting heatmap ── */}
         <div className="bg-white rounded-2xl border border-rich-black/8 p-4">
           <p className="text-sm font-semibold text-rich-black mb-1">Publishing heatmap</p>
-          <p className="text-xs text-stone-400 mb-3">Published posts · last 12 weeks</p>
+          <p className="text-xs text-rich-black/30 mb-3">Published posts · last 12 weeks</p>
           <PostingHeatmap items={items} />
         </div>
 
@@ -733,16 +733,16 @@ export function Analytics({ items, campaigns, updateItem, contentSeries = [] }) 
         <div className="bg-white rounded-2xl border border-rich-black/8 p-4">
           <p className="text-sm font-semibold text-rich-black mb-3">Team workload</p>
           {byMember.length === 0
-            ? <p className="text-xs text-stone-300">No items assigned yet</p>
+            ? <p className="text-xs text-rich-black/20">No items assigned yet</p>
             : byMember.map(({ member: m, count, published: pub }) => (
               <div key={m.id} className="flex items-center gap-3 mb-3">
                 <Avatar memberId={m.id} size={28} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs font-medium text-stone-700">{m.name}</p>
-                    <p className="text-xs text-stone-400">{pub}/{count} published</p>
+                    <p className="text-xs font-medium text-rich-black/60">{m.name}</p>
+                    <p className="text-xs text-rich-black/30">{pub}/{count} published</p>
                   </div>
-                  <div className="h-1.5 bg-stone-100 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-rich-black/5 rounded-full overflow-hidden">
                     <div className="h-full rounded-full" style={{ width: `${(count / (items.length || 1)) * 100}%`, background: m.color }} />
                   </div>
                 </div>
@@ -763,10 +763,10 @@ export function Analytics({ items, campaigns, updateItem, contentSeries = [] }) 
                 <div key={c.id} className="flex items-center gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <p className="text-sm font-medium text-stone-700 truncate">{c.name}</p>
-                      <p className="text-xs text-stone-400 shrink-0 ml-2">{c.published}/{c.total} posts</p>
+                      <p className="text-sm font-medium text-rich-black/60 truncate">{c.name}</p>
+                      <p className="text-xs text-rich-black/30 shrink-0 ml-2">{c.published}/{c.total} posts</p>
                     </div>
-                    <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
+                    <div className="h-2 bg-rich-black/5 rounded-full overflow-hidden">
                       <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: PINK }} />
                     </div>
                   </div>
@@ -782,14 +782,14 @@ export function Analytics({ items, campaigns, updateItem, contentSeries = [] }) 
         {/* ── Performance Metrics ── */}
         <div className="bg-white rounded-2xl border border-rich-black/8 p-4">
           <p className="text-sm font-semibold text-rich-black mb-1">Performance tracking</p>
-          <p className="text-xs text-stone-400 mb-3">Engagement metrics on published content</p>
+          <p className="text-xs text-rich-black/30 mb-3">Engagement metrics on published content</p>
           <PerformanceMetrics items={items} />
         </div>
 
         {/* ── Smart Recommendations ── */}
         <div className="bg-white rounded-2xl border border-rich-black/8 p-4">
           <p className="text-sm font-semibold text-rich-black mb-1">Smart recommendations</p>
-          <p className="text-xs text-stone-400 mb-3">AI-powered suggestions based on your content</p>
+          <p className="text-xs text-rich-black/30 mb-3">AI-powered suggestions based on your content</p>
           <SmartRecommendations items={items} />
         </div>
       </div>

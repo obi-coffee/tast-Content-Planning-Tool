@@ -34,14 +34,14 @@ export function ProductManager({ products, setProducts, onClose }) {
 
   return (
     <Modal title="Product Catalog" onClose={onClose}>
-      <p className="text-xs text-stone-400 mb-4">Add and manage your tāst products. These appear as options when creating content.</p>
+      <p className="text-xs text-rich-black/30 mb-4">Add and manage your tāst products. These appear as options when creating content.</p>
 
       {/* Add form */}
-      <div className="bg-stone-50 rounded-xl p-4 mb-5">
-        <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-3">Add New Product</p>
+      <div className="bg-london-fog rounded-xl p-4 mb-5">
+        <p className="text-xs font-semibold text-rich-black/40 uppercase tracking-wider mb-3">Add New Product</p>
         <Inp label="Product name" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Ethiopia Anaerobic Natural" />
         <div className="mb-3">
-          <label className="block text-sm font-medium text-stone-600 mb-2">Roast type</label>
+          <label className="block text-sm font-medium text-rich-black/50 mb-2">Roast type</label>
           <div className="flex flex-wrap gap-2">
             {ROAST_TYPES.map((r, i) => (
               <button key={r.label} type="button" onClick={() => setRoastIdx(i)}
@@ -57,27 +57,27 @@ export function ProductManager({ products, setProducts, onClose }) {
         </div>
         <button onClick={add} disabled={!name.trim()}
           style={name.trim() ? { background: "#F05881" } : {}}
-          className="w-full disabled:bg-stone-200 disabled:text-stone-400 text-white py-2 rounded-lg font-medium text-sm transition-all">
+          className="w-full disabled:bg-rich-black/10 disabled:text-rich-black/30 text-white py-2 rounded-lg font-medium text-sm transition-all">
           Add Product
         </button>
       </div>
 
       {/* Product list */}
-      <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-2">Your Products ({products.length})</p>
+      <p className="text-xs font-semibold text-rich-black/40 uppercase tracking-wider mb-2">Your Products ({products.length})</p>
       {products.length === 0
-        ? <p className="text-sm text-stone-300">No products yet — add your first one above.</p>
+        ? <p className="text-sm text-rich-black/20">No products yet — add your first one above.</p>
         : (
           <div className="space-y-1.5">
             {products.map(p => (
-              <div key={p.id} className="flex items-center justify-between bg-white rounded-xl border border-stone-100 px-3 py-2.5">
+              <div key={p.id} className="flex items-center justify-between bg-white rounded-xl border border-rich-black/8 px-3 py-2.5">
                 <div className="flex items-center gap-2.5">
                   <ProductDot color={p.color} border={p.border} />
                   <div>
-                    <p className="text-sm font-medium text-stone-800">{p.name}</p>
+                    <p className="text-sm font-medium text-rich-black">{p.name}</p>
                     <p className="text-xs" style={{ color: p.color === "#fbf9f3" ? "#a8a29e" : p.color }}>{p.roast}</p>
                   </div>
                 </div>
-                <button onClick={() => remove(p.id)} className="text-xs text-stone-300 hover:text-red-400 transition-colors">remove</button>
+                <button onClick={() => remove(p.id)} className="text-xs text-rich-black/20 hover:text-red-400 transition-colors">remove</button>
               </div>
             ))}
           </div>
@@ -92,14 +92,14 @@ export function ProductSelector({ value, onChange, products, onManage }) {
   return (
     <div className="mb-3">
       <div className="flex items-center justify-between mb-1">
-        <label className="block text-sm font-medium text-stone-600">Product</label>
+        <label className="block text-sm font-medium text-rich-black/50">Product</label>
         <button type="button" onClick={onManage} style={{ color: "#F05881" }} className="text-xs hover:opacity-70 font-medium">
           + Manage products
         </button>
       </div>
       <div className="relative">
         <select value={value} onChange={e => onChange(e.target.value)}
-          className="w-full border border-stone-200 rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none bg-white focus:ring-2 focus:ring-[#F05881]/40 appearance-none">
+          className="w-full border border-rich-black/12 rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none bg-white focus:ring-2 focus:ring-[#F05881]/40 appearance-none">
           <option value="">No product selected</option>
           {products.map(p => (
             <option key={p.id} value={p.name}>{p.name} — {p.roast}</option>
@@ -109,7 +109,7 @@ export function ProductSelector({ value, onChange, products, onManage }) {
         <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
           {(() => {
             const matched = products.find(p => p.name === value);
-            return matched ? <ProductDot color={matched.color} border={matched.border} /> : <span className="w-2.5 h-2.5 rounded-full inline-block bg-stone-200" />;
+            return matched ? <ProductDot color={matched.color} border={matched.border} /> : <span className="w-2.5 h-2.5 rounded-full inline-block bg-rich-black/10" />;
           })()}
         </div>
       </div>
