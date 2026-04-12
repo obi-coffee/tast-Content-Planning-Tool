@@ -42,7 +42,7 @@ export function Campaigns({ campaigns, addCampaign, updateCampaign, deleteCampai
   const deleteContent = async () => { if(editContent?.id) await deleteItem(editContent.id).catch(console.error); };
 
   const reorder = (arr,from,to) => { const a=[...arr]; const [m]=a.splice(from,1); a.splice(to,0,m); return a; };
-  const statusCls = s => s==="Live"?"bg-[#a12f52]/15 text-[#a12f52]":s==="Complete"?"bg-stone-200 text-stone-600":"bg-[#fa8f9c]/20 text-[#a12f52]";
+  const statusCls = s => s==="Live"?"bg-[#a12f52]/15 text-[#a12f52]":s==="Complete"?"bg-rich-black/10 text-rich-black/50":"bg-[#fa8f9c]/20 text-[#a12f52]";
 
   // ── Campaign Detail ──
   if (active) {
@@ -68,18 +68,18 @@ export function Campaigns({ campaigns, addCampaign, updateCampaign, deleteCampai
         <div className="flex items-start justify-between mb-2">
           <div>
             <h2 className="font-inter text-2xl font-bold text-rich-black">{c.name}</h2>
-            {c.dropDate && <p className="text-sm text-stone-400 mt-0.5">Drop: {c.dropDate}</p>}
-            {channels.length>0 && <div className="flex gap-1 mt-1 flex-wrap">{channels.map(ch=><Tag key={ch} label={ch} colorClass="bg-stone-100 text-stone-500" />)}</div>}
+            {c.dropDate && <p className="text-sm text-rich-black/30 mt-0.5">Drop: {c.dropDate}</p>}
+            {channels.length>0 && <div className="flex gap-1 mt-1 flex-wrap">{channels.map(ch=><Tag key={ch} label={ch} colorClass="bg-rich-black/5 text-rich-black/40" />)}</div>}
           </div>
           <div className="flex gap-2 items-center">
             <Tag label={c.status} colorClass={statusCls(c.status)} />
-            <button onClick={()=>{setCampForm({...c});setShowCampForm(true);}} className="text-xs text-stone-400 hover:text-stone-600">Edit</button>
+            <button onClick={()=>{setCampForm({...c});setShowCampForm(true);}} className="text-xs text-rich-black/30 hover:text-rich-black/50">Edit</button>
           </div>
         </div>
 
         <CampaignProgress items={seqItems} />
 
-        <div className="flex gap-1 mb-4 border-b border-stone-100">
+        <div className="flex gap-1 mb-4 border-b border-rich-black/8">
           {["content","brief"].map(t=>(
             <button key={t} onClick={()=>setActiveTab(t)}
               className="text-sm px-4 py-2 border-b-2 font-medium capitalize transition-colors"
@@ -98,10 +98,10 @@ export function Campaigns({ campaigns, addCampaign, updateCampaign, deleteCampai
               </button>
             </div>
             {seqItems.length===0
-              ? <p className="text-sm text-stone-300">No content yet — add the first piece to this campaign.</p>
+              ? <p className="text-sm text-rich-black/20">No content yet — add the first piece to this campaign.</p>
               : (
                 <div>
-                  <p className="text-xs text-stone-300 mb-2">Drag to reorder publish sequence</p>
+                  <p className="text-xs text-rich-black/20 mb-2">Drag to reorder publish sequence</p>
                   {seqItems.map((item,idx)=>{
                     const thumb = driveThumb(item.driveUrl);
                     const chs = flattenChannels(item.channels);
@@ -114,22 +114,22 @@ export function Campaigns({ campaigns, addCampaign, updateCampaign, deleteCampai
                         className="bg-white rounded-xl border mb-2 overflow-hidden cursor-grab transition-all duration-200"
                         style={{borderColor:dragOverIdx===idx?"#F05881":"#f5f5f4",opacity:dragIdx===idx?0.5:1}}>
                         <div className="flex items-center gap-3 p-3">
-                          <div className="text-stone-300 select-none text-lg px-1">⠿</div>
-                          <span className="text-xs font-bold text-stone-300 w-5">#{idx+1}</span>
+                          <div className="text-rich-black/20 select-none text-lg px-1">⠿</div>
+                          <span className="text-xs font-bold text-rich-black/20 w-5">#{idx+1}</span>
                           {thumb && <img src={thumb} alt="" className="w-14 h-14 rounded-lg object-cover flex-shrink-0" onError={e=>e.target.style.display="none"} />}
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-stone-800 text-sm">{item.title}</p>
-                            {item.draftCopy && <p className="text-xs text-stone-400 mt-0.5 line-clamp-1 italic">{item.draftCopy}</p>}
+                            <p className="font-medium text-rich-black text-sm">{item.title}</p>
+                            {item.draftCopy && <p className="text-xs text-rich-black/30 mt-0.5 line-clamp-1 italic">{item.draftCopy}</p>}
                             <div className="flex gap-1 mt-1 flex-wrap">
                               <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{background:STAGE_META[item.stage]?.color+"22",color:STAGE_META[item.stage]?.color}}>{item.stage}</span>
-                              {chs.map(ch=><Tag key={ch} label={ch} colorClass="bg-stone-100 text-stone-500" />)}
+                              {chs.map(ch=><Tag key={ch} label={ch} colorClass="bg-rich-black/5 text-rich-black/40" />)}
                             </div>
-                            {item.date && <p className="text-xs text-stone-300 mt-0.5">{item.date}</p>}
+                            {item.date && <p className="text-xs text-rich-black/20 mt-0.5">{item.date}</p>}
                           </div>
                           {item.assigneeId && <Avatar memberId={item.assigneeId} size={22} />}
                           <CommentBadge count={commentCounts[item.id] || 0} onClick={() => setCommentItemId(item.id)} />
-                          <button onClick={()=>{setEditContent(item);setShowContentForm(true);}} className="text-xs text-stone-300 hover:text-stone-500 px-2">Edit</button>
-                          <button onClick={()=>setCommentItemId(item.id)} className="text-xs text-stone-300 hover:text-[#F05881] px-1 transition-colors" title="Comments">💬</button>
+                          <button onClick={()=>{setEditContent(item);setShowContentForm(true);}} className="text-xs text-rich-black/20 hover:text-rich-black/40 px-2">Edit</button>
+                          <button onClick={()=>setCommentItemId(item.id)} className="text-xs text-rich-black/20 hover:text-[#F05881] px-1 transition-colors" title="Comments">💬</button>
                         </div>
                       </div>
                     );
@@ -141,12 +141,12 @@ export function Campaigns({ campaigns, addCampaign, updateCampaign, deleteCampai
 
         {activeTab==="brief" && (
           <div className="grid gap-4">
-            {c.keyMessage && <div className="rounded-xl border p-4" style={{background:"#fff0f4",borderColor:"#fa8f9c"}}><p className="text-xs font-semibold uppercase tracking-wider mb-1" style={{color:"#F05881"}}>Key Message</p><p className="text-sm text-stone-700">{c.keyMessage}</p></div>}
-            {c.tone && <div className="bg-white rounded-xl border border-stone-100 p-4"><p className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-1">Tone Direction</p><p className="text-sm text-stone-700">{c.tone}</p></div>}
-            {c.goal && <div className="bg-white rounded-xl border border-stone-100 p-4"><p className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-1">Goal</p><p className="text-sm text-stone-700">{c.goal}</p></div>}
-            {c.pillars && <div className="bg-white rounded-xl border border-stone-100 p-4"><p className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-1">Content Pillars</p><p className="text-sm text-stone-700 whitespace-pre-wrap">{c.pillars}</p></div>}
-            {c.bigThink && <div className="rounded-xl border p-4" style={{background:"#fff5f7",borderColor:"#fa8f9c"}}><p className="text-xs font-semibold uppercase tracking-wider mb-1" style={{color:"#F05881"}}>Big Think</p><p className="text-sm text-stone-700 whitespace-pre-wrap">{c.bigThink}</p></div>}
-            {!c.keyMessage&&!c.tone&&!c.goal&&!c.pillars&&!c.bigThink && <p className="text-sm text-stone-300">No brief yet — edit the campaign to add creative direction.</p>}
+            {c.keyMessage && <div className="rounded-xl border p-4" style={{background:"#fff0f4",borderColor:"#fa8f9c"}}><p className="text-xs font-semibold uppercase tracking-wider mb-1" style={{color:"#F05881"}}>Key Message</p><p className="text-sm text-rich-black/60">{c.keyMessage}</p></div>}
+            {c.tone && <div className="bg-white rounded-xl border border-rich-black/8 p-4"><p className="text-xs font-semibold text-rich-black/30 uppercase tracking-wider mb-1">Tone Direction</p><p className="text-sm text-rich-black/60">{c.tone}</p></div>}
+            {c.goal && <div className="bg-white rounded-xl border border-rich-black/8 p-4"><p className="text-xs font-semibold text-rich-black/30 uppercase tracking-wider mb-1">Goal</p><p className="text-sm text-rich-black/60">{c.goal}</p></div>}
+            {c.pillars && <div className="bg-white rounded-xl border border-rich-black/8 p-4"><p className="text-xs font-semibold text-rich-black/30 uppercase tracking-wider mb-1">Content Pillars</p><p className="text-sm text-rich-black/60 whitespace-pre-wrap">{c.pillars}</p></div>}
+            {c.bigThink && <div className="rounded-xl border p-4" style={{background:"#fff5f7",borderColor:"#fa8f9c"}}><p className="text-xs font-semibold uppercase tracking-wider mb-1" style={{color:"#F05881"}}>Big Think</p><p className="text-sm text-rich-black/60 whitespace-pre-wrap">{c.bigThink}</p></div>}
+            {!c.keyMessage&&!c.tone&&!c.goal&&!c.pillars&&!c.bigThink && <p className="text-sm text-rich-black/20">No brief yet — edit the campaign to add creative direction.</p>}
           </div>
         )}
 
@@ -209,14 +209,14 @@ export function Campaigns({ campaigns, addCampaign, updateCampaign, deleteCampai
               className="bg-white rounded-xl border border-rich-black/8 p-4 cursor-pointer hover:border-no2 transition-colors">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <p className="font-medium text-stone-800 text-sm">{c.name}</p>
-                  {c.dropDate && <p className="text-xs text-stone-400 mt-0.5">Drop: {c.dropDate}</p>}
-                  {c.keyMessage && <p className="text-xs text-stone-500 mt-1 line-clamp-1 italic">"{c.keyMessage}"</p>}
-                  {channels.length>0 && <div className="flex gap-1 mt-2 flex-wrap">{channels.map(ch=><Tag key={ch} label={ch} colorClass="bg-stone-100 text-stone-500" />)}</div>}
+                  <p className="font-medium text-rich-black text-sm">{c.name}</p>
+                  {c.dropDate && <p className="text-xs text-rich-black/30 mt-0.5">Drop: {c.dropDate}</p>}
+                  {c.keyMessage && <p className="text-xs text-rich-black/40 mt-1 line-clamp-1 italic">"{c.keyMessage}"</p>}
+                  {channels.length>0 && <div className="flex gap-1 mt-2 flex-wrap">{channels.map(ch=><Tag key={ch} label={ch} colorClass="bg-rich-black/5 text-rich-black/40" />)}</div>}
                 </div>
                 <div className="flex flex-col items-end gap-1.5 ml-3">
                   <Tag label={c.status} colorClass={statusCls(c.status)} />
-                  {linked.length>0 && <span className="text-xs text-stone-400">{linked.length} piece{linked.length!==1?"s":""}</span>}
+                  {linked.length>0 && <span className="text-xs text-rich-black/30">{linked.length} piece{linked.length!==1?"s":""}</span>}
                 </div>
               </div>
               {linked.length>0 && <div className="mt-3"><CampaignProgress items={linked} /></div>}

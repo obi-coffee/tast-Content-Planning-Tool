@@ -87,7 +87,7 @@ function GridCell({ item, index, isHighlighted, onClick, size = "md" }) {
 
       {/* Empty slot number */}
       {!item && (
-        <span className="absolute inset-0 flex items-center justify-center text-stone-300 font-medium" style={{ fontSize: 11 }}>
+        <span className="absolute inset-0 flex items-center justify-center text-rich-black/20 font-medium" style={{ fontSize: 11 }}>
           #{index + 1}
         </span>
       )}
@@ -104,9 +104,9 @@ function DetailPanel({ item, campaigns, onClose, onEdit, commentCount = 0 }) {
   const stageColor = STAGE_META[stage]?.color || "#a8a29e";
 
   return (
-    <div className="bg-white rounded-2xl border border-stone-100 shadow-xl overflow-hidden" style={{ maxWidth: 380 }}>
+    <div className="bg-white rounded-2xl border border-rich-black/8 shadow-xl overflow-hidden" style={{ maxWidth: 380 }}>
       {/* Image */}
-      <div className="w-full bg-stone-100 relative" style={{ height: 220 }}>
+      <div className="w-full bg-rich-black/5 relative" style={{ height: 220 }}>
         {thumb && !imgErr ? (
           <img src={thumb} alt={item.title} className="w-full h-full object-cover" onError={() => setImgErr(true)} />
         ) : (
@@ -139,7 +139,7 @@ function DetailPanel({ item, campaigns, onClose, onEdit, commentCount = 0 }) {
 
       <div className="p-4">
         <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className="font-semibold text-stone-800 text-base leading-tight">{item.title}</h3>
+          <h3 className="font-semibold text-rich-black text-base leading-tight">{item.title}</h3>
           <span className="text-xs px-2 py-0.5 rounded-full font-medium shrink-0"
             style={{ background: stageColor + "22", color: stageColor }}>{stage}</span>
         </div>
@@ -149,12 +149,12 @@ function DetailPanel({ item, campaigns, onClose, onEdit, commentCount = 0 }) {
         )}
 
         {item.draftCopy && (
-          <div className="bg-stone-50 rounded-lg p-3 mb-3">
-            <p className="text-xs text-stone-500 leading-relaxed">{item.draftCopy}</p>
+          <div className="bg-london-fog rounded-lg p-3 mb-3">
+            <p className="text-xs text-rich-black/40 leading-relaxed">{item.draftCopy}</p>
           </div>
         )}
 
-        <div className="flex items-center justify-between text-xs text-stone-400">
+        <div className="flex items-center justify-between text-xs text-rich-black/30">
           <div className="flex items-center gap-2">
             <span>{item.date || "No date set"}</span>
             {commentCount > 0 && <CommentBadge count={commentCount} />}
@@ -240,11 +240,11 @@ export function InstagramGrid({ items, addItem, updateItem, deleteItem, campaign
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div>
           <h2 className="font-inter text-xl font-bold text-rich-black">Instagram Grid</h2>
-          <p className="text-xs text-stone-400 mt-0.5">{igItems.length} post{igItems.length !== 1 ? "s" : ""} · visual feed preview</p>
+          <p className="text-xs text-rich-black/30 mt-0.5">{igItems.length} post{igItems.length !== 1 ? "s" : ""} · visual feed preview</p>
         </div>
         <div className="flex items-center gap-2">
           {/* Size toggle */}
-          <div className="flex bg-stone-100 rounded-lg p-0.5">
+          <div className="flex bg-rich-black/5 rounded-lg p-0.5">
             {[["sm", "S"], ["md", "M"], ["lg", "L"]].map(([v, l]) => (
               <button key={v} onClick={() => setGridSize(v)}
                 className="text-xs px-2.5 py-1.5 rounded-md font-medium transition-all"
@@ -290,22 +290,22 @@ export function InstagramGrid({ items, addItem, updateItem, deleteItem, campaign
               <div className="w-16 h-1.5 rounded-full bg-stone-600" />
             </div>
             {/* IG top bar */}
-            <div className="bg-white flex items-center justify-between px-3 py-2 border-b border-stone-100" style={{ width: (cellSize * 3) + (gap * 2) }}>
+            <div className="bg-white flex items-center justify-between px-3 py-2 border-b border-rich-black/8" style={{ width: (cellSize * 3) + (gap * 2) }}>
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full flex items-center justify-center text-white font-bold text-xs" style={{ background: "#F05881" }}>t</div>
-                <span className="text-xs font-semibold text-stone-800">tāst.coffee</span>
+                <span className="text-xs font-semibold text-rich-black">tāst.coffee</span>
               </div>
               <div className="flex gap-3">
-                <span className="text-stone-400 text-sm">＋</span>
-                <span className="text-stone-400 text-sm">☰</span>
+                <span className="text-rich-black/30 text-sm">＋</span>
+                <span className="text-rich-black/30 text-sm">☰</span>
               </div>
             </div>
             {/* IG profile stub */}
-            <div className="bg-white px-3 py-2.5 flex items-center gap-3 border-b border-stone-100">
+            <div className="bg-white px-3 py-2.5 flex items-center gap-3 border-b border-rich-black/8">
               <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0" style={{ background: "linear-gradient(135deg,#F05881,#a12f52)" }}>t</div>
               <div>
-                <p className="text-xs font-semibold text-stone-800">tāst coffee</p>
-                <p className="text-xs text-stone-400">Coffee for the Live Ones</p>
+                <p className="text-xs font-semibold text-rich-black">tāst coffee</p>
+                <p className="text-xs text-rich-black/30">Coffee for the Live Ones</p>
               </div>
             </div>
             {/* Grid */}
@@ -329,9 +329,9 @@ export function InstagramGrid({ items, addItem, updateItem, deleteItem, campaign
               ))}
             </div>
             {/* Bottom bar */}
-            <div className="bg-white h-8 flex items-center justify-around px-4 border-t border-stone-100">
+            <div className="bg-white h-8 flex items-center justify-around px-4 border-t border-rich-black/8">
               {["⌂", "🔍", "＋", "♡", "◯"].map((icon, i) => (
-                <span key={i} className="text-stone-400" style={{ fontSize: 14 }}>{icon}</span>
+                <span key={i} className="text-rich-black/30" style={{ fontSize: 14 }}>{icon}</span>
               ))}
             </div>
             {/* Home indicator */}
@@ -345,7 +345,7 @@ export function InstagramGrid({ items, addItem, updateItem, deleteItem, campaign
             {Object.entries(STAGE_META).map(([s, m]) => (
               <div key={s} className="flex items-center gap-1">
                 <div className="w-2 h-2 rounded-full" style={{ background: m.color }} />
-                <span className="text-xs text-stone-400">{s}</span>
+                <span className="text-xs text-rich-black/30">{s}</span>
               </div>
             ))}
           </div>
@@ -362,11 +362,11 @@ export function InstagramGrid({ items, addItem, updateItem, deleteItem, campaign
               commentCount={commentCounts[selected.id] || 0}
             />
           ) : (
-            <div className="text-center py-12 text-stone-300">
+            <div className="text-center py-12 text-rich-black/20">
               <p className="text-4xl mb-3">◫</p>
               <p className="text-sm">Tap a post to preview details</p>
               {igItems.length === 0 && (
-                <p className="text-xs mt-2 text-stone-300">No Instagram posts yet — add one to get started</p>
+                <p className="text-xs mt-2 text-rich-black/20">No Instagram posts yet — add one to get started</p>
               )}
             </div>
           )}

@@ -26,16 +26,8 @@ export const INTENT_META = {
   conversion: { label: "Direct Conversion",   target: 10, color: "#EF4056" },
 };
 
-// Legacy theme colors — used as fallback for old items
-export const TYPE_COLORS = {
-  "The Build":"bg-rich-black/8 text-rich-black/60","The Problem":"bg-pink/15 text-raspberry",
-  "Roaster Love":"bg-pink/15 text-raspberry","Coffee Life":"bg-pink/15 text-raspberry",
-  "Taste Story":"bg-pink/15 text-raspberry","Waitlist":"bg-no3/15 text-raspberry",
-  "Trade Show":"bg-rich-black/8 text-rich-black/60","Beta Launch":"bg-no3/15 text-no3",
-  "Community":"bg-pink/10 text-raspberry","Launch":"bg-raspberry/20 text-raspberry",
-  "Vol. 3 Tease":"bg-violet-100 text-violet-700","Vol. 3 Reveal":"bg-violet-200 text-violet-800",
-  "Vol. 3 Drop":"bg-violet-300 text-violet-900",
-};
+// Legacy theme colors — used as fallback for old items (not actively used with new series system)
+export const TYPE_COLORS = {};
 
 // Phases from the 36-week plan
 export const PHASES = [
@@ -322,11 +314,11 @@ export function ChannelPicker({ selected={}, onChange }) {
 
   return (
     <div className="mb-3">
-      <label className="block text-sm font-medium text-stone-600 mb-2">Channels</label>
+      <label className="block text-sm font-medium text-rich-black/50 mb-2">Channels</label>
 
       {/* Primary */}
       <div className="mb-2">
-        <p className="text-xs text-stone-400 mb-1.5 uppercase tracking-wider font-medium">Primary</p>
+        <p className="text-xs text-rich-black/30 mb-1.5 uppercase tracking-wider font-medium">Primary</p>
         <div className="flex flex-wrap gap-2">
           {CHANNEL_OPTIONS.map(ch => {
             const active = norm.primary === ch;
@@ -347,7 +339,7 @@ export function ChannelPicker({ selected={}, onChange }) {
       {/* Secondary */}
       {norm.primary && (
         <div>
-          <p className="text-xs text-stone-400 mb-1.5 uppercase tracking-wider font-medium">Also publishing to</p>
+          <p className="text-xs text-rich-black/30 mb-1.5 uppercase tracking-wider font-medium">Also publishing to</p>
           <div className="flex flex-wrap gap-2">
             {CHANNEL_OPTIONS.filter(ch => ch !== norm.primary).map(ch => {
               const active = norm.secondary.includes(ch);
@@ -372,7 +364,7 @@ export function ChannelPicker({ selected={}, onChange }) {
             ★ {norm.primary}
           </span>
           {norm.secondary.map(s => (
-            <span key={s} className="text-xs px-2 py-0.5 rounded-full text-stone-500 bg-stone-100">{s}</span>
+            <span key={s} className="text-xs px-2 py-0.5 rounded-full text-rich-black/40 bg-rich-black/5">{s}</span>
           ))}
         </div>
       )}
@@ -383,7 +375,7 @@ export function ChannelPicker({ selected={}, onChange }) {
 export function StagePicker({ value, onChange }) {
   return (
     <div className="mb-3">
-      <label className="block text-sm font-medium text-stone-600 mb-2">Pipeline Stage</label>
+      <label className="block text-sm font-medium text-rich-black/50 mb-2">Pipeline Stage</label>
       <div className="flex flex-wrap gap-2">
         {PIPELINE_STAGES.map(s => {
           const active = value===s;
@@ -412,7 +404,7 @@ const FORMAT_ICONS = {
 export function FormatPicker({ value, onChange }) {
   return (
     <div className="mb-3">
-      <label className="block text-sm font-medium text-stone-600 mb-2">Post Format</label>
+      <label className="block text-sm font-medium text-rich-black/50 mb-2">Post Format</label>
       <div className="flex flex-wrap gap-2">
         {FORMAT_OPTIONS.map(f => {
           const active = value === f;
@@ -509,32 +501,32 @@ export function TemplatePicker({ onSelect, onClose }) {
   return (
     <div className="mb-4">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">Quick-create from template</p>
-        <button onClick={onClose} className="text-xs text-stone-400 hover:text-stone-600">Cancel</button>
+        <p className="text-xs font-semibold uppercase tracking-wider text-rich-black/40">Quick-create from template</p>
+        <button onClick={onClose} className="text-xs text-rich-black/30 hover:text-rich-black/50">Cancel</button>
       </div>
       <input
         value={search}
         onChange={e => setSearch(e.target.value)}
         placeholder="Search templates..."
-        className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#F05881]/40 mb-3"
+        className="w-full border border-rich-black/12 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#F05881]/40 mb-3"
       />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto">
         {filtered.map(t => (
           <button
             key={t.id}
             onClick={() => onSelect(t)}
-            className="text-left bg-white border border-stone-100 rounded-xl p-3 hover:border-[#fa8f9c] transition-colors"
+            className="text-left bg-white border border-rich-black/8 rounded-xl p-3 hover:border-[#fa8f9c] transition-colors"
           >
-            <p className="text-sm font-medium text-stone-800">{t.name}</p>
-            <p className="text-xs text-stone-400 mt-0.5">{t.description}</p>
+            <p className="text-sm font-medium text-rich-black">{t.name}</p>
+            <p className="text-xs text-rich-black/30 mt-0.5">{t.description}</p>
             <div className="flex gap-1 mt-2 flex-wrap">
               <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "#F0588118", color: "#F05881" }}>{t.type}</span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-stone-100 text-stone-500">{t.format}</span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-stone-100 text-stone-500">{t.channels.primary}</span>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-rich-black/5 text-rich-black/40">{t.format}</span>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-rich-black/5 text-rich-black/40">{t.channels.primary}</span>
             </div>
           </button>
         ))}
-        {filtered.length === 0 && <p className="text-xs text-stone-400 col-span-2 text-center py-4">No templates match your search</p>}
+        {filtered.length === 0 && <p className="text-xs text-rich-black/30 col-span-2 text-center py-4">No templates match your search</p>}
       </div>
     </div>
   );
@@ -542,7 +534,7 @@ export function TemplatePicker({ onSelect, onClose }) {
 
 export function CampaignProgress({ items }) {
   const total = items.length;
-  if (!total) return <p className="text-xs text-stone-300 mb-4">No content yet.</p>;
+  if (!total) return <p className="text-xs text-rich-black/20 mb-4">No content yet.</p>;
   return (
     <div className="mb-4">
       <div className="flex rounded-full overflow-hidden h-2 mb-2">
@@ -564,7 +556,7 @@ export function CampaignProgress({ items }) {
             </span>
           );
         })}
-        <span className="text-xs text-stone-400 ml-auto">{total} total</span>
+        <span className="text-xs text-rich-black/30 ml-auto">{total} total</span>
       </div>
     </div>
   );
@@ -661,9 +653,9 @@ export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, loc
         <StagePicker value={form.stage} onChange={v=>f("stage",v)} />
         {!lockCampaignId && campaigns.length>0 && (
           <div className="mb-3">
-            <label className="block text-sm font-medium text-stone-600 mb-1">Link to Campaign</label>
+            <label className="block text-sm font-medium text-rich-black/50 mb-1">Link to Campaign</label>
             <select value={form.campaignId} onChange={e=>f("campaignId",e.target.value)}
-              className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none bg-white focus:ring-2 focus:ring-[#F05881]/40">
+              className="w-full border border-rich-black/12 rounded-lg px-3 py-2 text-sm focus:outline-none bg-white focus:ring-2 focus:ring-[#F05881]/40">
               <option value="">No campaign</option>
               {campaigns.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
@@ -672,7 +664,7 @@ export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, loc
         {linkedCampaign?.keyMessage && (
           <div className="mb-3 p-3 rounded-lg border text-xs" style={{background:"#fff0f4",borderColor:"#fa8f9c"}}>
             <p className="font-semibold mb-1" style={{color:"#F05881"}}>↗ {linkedCampaign.name}</p>
-            <p className="text-stone-600">{linkedCampaign.keyMessage}</p>
+            <p className="text-rich-black/50">{linkedCampaign.keyMessage}</p>
           </div>
         )}
         <Inp label="Scheduled date" type="date" value={form.date} onChange={e=>f("date",e.target.value)} />
@@ -709,11 +701,11 @@ export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, loc
       <FormSection title="Media" defaultOpen={!!initial?.driveUrl || !!(initial?.driveUrls?.length)}>
         <div className="mb-3">
           <div className="flex items-center justify-between mb-1">
-            <label className="block text-sm font-medium text-stone-600">
+            <label className="block text-sm font-medium text-rich-black/50">
               {isInstagramPrimary ? "Photos / Carousel" : "Google Drive image"}
             </label>
             {isInstagramPrimary && (
-              <span className="text-xs text-stone-400">{(form.driveUrls||[]).filter(u=>u).length} image{(form.driveUrls||[]).filter(u=>u).length !== 1 ? "s" : ""}</span>
+              <span className="text-xs text-rich-black/30">{(form.driveUrls||[]).filter(u=>u).length} image{(form.driveUrls||[]).filter(u=>u).length !== 1 ? "s" : ""}</span>
             )}
           </div>
 
@@ -722,56 +714,56 @@ export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, loc
               {(form.driveUrls||[]).map((url, i) => (
                 <div key={i} className="mb-2">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-semibold text-stone-400 w-5">#{i+1}</span>
+                    <span className="text-xs font-semibold text-rich-black/30 w-5">#{i+1}</span>
                     <input
                       value={url}
                       onChange={e => updateDriveUrl(i, e.target.value)}
                       placeholder="Paste Drive share link"
-                      className="flex-1 border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#F05881]/40"
+                      className="flex-1 border border-rich-black/12 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#F05881]/40"
                     />
                     <div className="flex gap-1 shrink-0">
                       <button type="button" onClick={()=>moveDriveUrl(i,-1)} disabled={i===0}
-                        className="text-stone-300 hover:text-stone-500 disabled:opacity-30 text-sm px-1">↑</button>
+                        className="text-rich-black/20 hover:text-rich-black/40 disabled:opacity-30 text-sm px-1">↑</button>
                       <button type="button" onClick={()=>moveDriveUrl(i,1)} disabled={i===(form.driveUrls||[]).length-1}
-                        className="text-stone-300 hover:text-stone-500 disabled:opacity-30 text-sm px-1">↓</button>
+                        className="text-rich-black/20 hover:text-rich-black/40 disabled:opacity-30 text-sm px-1">↓</button>
                       <button type="button" onClick={()=>removeDriveUrl(i)}
-                        className="text-stone-300 hover:text-red-400 text-sm px-1">✕</button>
+                        className="text-rich-black/20 hover:text-red-400 text-sm px-1">✕</button>
                     </div>
                   </div>
                   {url && (
                     <img src={driveThumb(url)} alt={`preview ${i+1}`}
-                      className="ml-7 w-24 h-24 rounded-lg object-cover border border-stone-100"
+                      className="ml-7 w-24 h-24 rounded-lg object-cover border border-rich-black/8"
                       onError={e=>e.target.style.display="none"} />
                   )}
                 </div>
               ))}
               <button type="button" onClick={addDriveUrl}
-                className="text-xs font-medium px-3 py-1.5 rounded-lg border border-dashed border-stone-300 text-stone-400 hover:border-[#F05881] hover:text-[#F05881] transition-colors w-full mt-1">
+                className="text-xs font-medium px-3 py-1.5 rounded-lg border border-dashed border-rich-black/15 text-rich-black/30 hover:border-[#F05881] hover:text-[#F05881] transition-colors w-full mt-1">
                 + Add image
               </button>
               {(form.driveUrls||[]).length > 1 && (
-                <p className="text-xs text-stone-300 mt-1">First image is the cover. Reorder with ↑↓.</p>
+                <p className="text-xs text-rich-black/20 mt-1">First image is the cover. Reorder with ↑↓.</p>
               )}
             </div>
           ) : (
             <div>
               <input value={(form.driveUrls||[])[0]||form.driveUrl||""} onChange={e=>{f("driveUrls",[e.target.value]);f("driveUrl",e.target.value);}}
                 placeholder="Paste Drive share link"
-                className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#F05881]/40" />
+                className="w-full border border-rich-black/12 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#F05881]/40" />
               {((form.driveUrls||[])[0]||form.driveUrl) && (
                 <img src={driveThumb((form.driveUrls||[])[0]||form.driveUrl)} alt="preview"
                   className="mt-2 w-full rounded-lg object-cover" style={{maxHeight:160}} onError={e=>e.target.style.display="none"} />
               )}
             </div>
           )}
-          <p className="text-xs text-stone-300 mt-1">Files must be "Anyone with the link can view"</p>
+          <p className="text-xs text-rich-black/20 mt-1">Files must be "Anyone with the link can view"</p>
         </div>
       </FormSection>
 
       {/* ── Performance Metrics (Published only) ── */}
       {form.stage === "Published" && (
         <FormSection title="Performance Metrics" defaultOpen={false}>
-          <p className="text-xs text-stone-400 mb-3">Track engagement on published content.</p>
+          <p className="text-xs text-rich-black/30 mb-3">Track engagement on published content.</p>
           <div className="grid grid-cols-2 gap-3">
             <Inp label="Likes" type="number" value={form.metrics?.likes || ""} onChange={e => f("metrics", { ...form.metrics, likes: e.target.value })} placeholder="0" />
             <Inp label="Comments" type="number" value={form.metrics?.comments || ""} onChange={e => f("metrics", { ...form.metrics, comments: e.target.value })} placeholder="0" />
@@ -785,7 +777,7 @@ export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, loc
         <button onClick={save} style={{background:"#F05881"}} className="flex-1 hover:opacity-90 text-white py-2 rounded-lg font-medium text-sm">Save</button>
         {initial?.id && onOpenComments && (
           <button onClick={()=>{onClose();onOpenComments(initial.id);}}
-            className="px-4 py-2 text-sm font-medium border border-stone-200 rounded-lg text-stone-500 hover:border-[#F05881] hover:text-[#F05881] transition-colors flex items-center gap-1.5">
+            className="px-4 py-2 text-sm font-medium border border-rich-black/12 rounded-lg text-rich-black/40 hover:border-[#F05881] hover:text-[#F05881] transition-colors flex items-center gap-1.5">
             <span>💬</span>
             <span>Comments</span>
           </button>

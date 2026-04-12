@@ -245,7 +245,7 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
         <div className="bg-white rounded-xl border border-[#F05881] p-3 mb-4 flex items-center gap-3 flex-wrap shadow-sm">
           <span className="text-sm font-medium text-rich-black">{selectedIds.size} selected</span>
           <button onClick={selectAll} className="text-xs text-[#F05881] hover:opacity-70 font-medium">Select all ({filteredItems.length})</button>
-          <div className="h-4 w-px bg-stone-200" />
+          <div className="h-4 w-px bg-rich-black/10" />
           <span className="text-xs text-rich-black/30">Move to:</span>
           {PIPELINE_STAGES.map(s => (
             <button key={s} onClick={() => bulkMoveStage(s)}
@@ -254,7 +254,7 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
               {s}
             </button>
           ))}
-          <div className="h-4 w-px bg-stone-200" />
+          <div className="h-4 w-px bg-rich-black/10" />
           <button onClick={bulkDelete} className="text-xs text-red-400 hover:text-red-600 font-medium">Delete</button>
           <button onClick={clearSelection} className="text-xs text-rich-black/30 hover:text-rich-black/50 ml-auto">Clear</button>
         </div>
@@ -733,7 +733,7 @@ export function Captions({ brandVoice, contentSeries = [] }) {
         <Sel label="Tone direction" options={["On-brand default","More poetic","More direct","Playful","Educational","Hype / launch energy"]} value={tone} onChange={e=>setTone(e.target.value)} />
         <button onClick={generate} disabled={loading||!context.trim()}
           style={loading||!context.trim()?{}:{background:"#F05881"}}
-          className="w-full disabled:bg-stone-200 disabled:text-rich-black/30 text-white py-3 md:py-2.5 rounded-lg font-medium text-sm mt-1 hover:opacity-90 transition-all">
+          className="w-full disabled:bg-rich-black/10 disabled:text-rich-black/30 text-white py-3 md:py-2.5 rounded-lg font-medium text-sm mt-1 hover:opacity-90 transition-all">
           {loading
             ? <span className="flex items-center justify-center gap-2"><span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin"/>Generating...</span>
             : "Generate Captions"}
