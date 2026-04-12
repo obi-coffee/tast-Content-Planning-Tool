@@ -238,7 +238,7 @@ export function Modal({ title, onClose, children }) {
       <div className="bg-london-fog w-full md:rounded-2xl md:max-w-lg rounded-t-2xl shadow-xl max-h-[92vh] overflow-y-auto">
         <div className="flex items-center justify-between p-5 border-b border-rich-black/10">
           <h2 className="font-inter font-bold text-rich-black text-lg">{title}</h2>
-          <button onClick={onClose} className="text-rich-black/30 hover:text-rich-black text-xl w-10 h-10 flex items-center justify-center">\u2715</button>
+          <button onClick={onClose} className="text-rich-black/30 hover:text-rich-black text-xl w-10 h-10 flex items-center justify-center">{"×"}</button>
         </div>
         <div className="p-5 pb-8">{children}</div>
       </div>
@@ -437,7 +437,7 @@ export function PhaseTag({ dateStr, className = "" }) {
 }
 
 // ── Empty State ───────────────────────────────────────────────────────────
-export function EmptyState({ icon = "\u2217", title, description, actionLabel, onAction }) {
+export function EmptyState({ icon = "*", title, description, actionLabel, onAction }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
       <div className="w-14 h-14 rounded-2xl bg-rich-black/5 flex items-center justify-center text-2xl text-rich-black/20 mb-4">{icon}</div>
@@ -481,7 +481,7 @@ export function FormSection({ title, defaultOpen = true, children }) {
       >
         {title}
         <span className="text-sm transition-transform" style={{ transform: open ? 'rotate(0deg)' : 'rotate(-90deg)' }}>
-          \u25be
+          {"▾"}
         </span>
       </button>
       {open && <div>{children}</div>}

@@ -59,7 +59,7 @@ function ToastItem({ toast, onDismiss }) {
         className="text-xs opacity-40 hover:opacity-70 shrink-0"
         style={{ color: s.color }}
       >
-        \u2715
+        {"×"}
       </button>
     </div>
   )
