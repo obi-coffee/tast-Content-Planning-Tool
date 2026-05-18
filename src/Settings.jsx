@@ -46,9 +46,10 @@ export function Settings({ brandVoice, setBrandVoice, contentSeries }) {
         <div>
           <div className="mb-4 px-3 py-2 rounded-lg border border-rich-black/8 bg-bloom">
             <p className="font-arizona text-sm text-rich-black/55 italic leading-relaxed">
-              Heads up — soon you'll draft captions inside each content item, with the
-              item's campaign and series picked up automatically. This standalone
-              tool stays as a quick scratch pad.
+              The primary way to draft captions is now inside each content item —
+              open any post in the Pipeline and look for "Draft with AI." This
+              standalone version is here as a scratch pad for ideas that aren't
+              yet tied to a specific post.
             </p>
           </div>
           <Captions brandVoice={brandVoice} contentSeries={contentSeries} />

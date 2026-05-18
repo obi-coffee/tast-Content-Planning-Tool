@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ProductSelector, ProductManager } from "./Products.jsx";
 import { Avatar, AssigneeSelector } from "./components/Avatar.jsx";
+import { DraftWithAI } from "./components/DraftWithAI.jsx";
 import { CONTENT_TEMPLATES } from "./lib/templates.js";
 
 export const PIPELINE_STAGES = ["Idea", "In Campaign", "In Production", "Ready", "Published"];
@@ -578,7 +579,7 @@ export function CampaignProgress({ items }) {
   );
 }
 
-export function ContentForm({ initial, campaigns, onSave, onDelete, onDuplicate, onClose, lockCampaignId, products=[], setProducts=()=>{}, onOpenComments, currentMember, contentSeries=[], onManageSeries }) {
+export function ContentForm({ initial, campaigns, onSave, onDelete, onDuplicate, onClose, lockCampaignId, products=[], setProducts=()=>{}, onOpenComments, currentMember, contentSeries=[], onManageSeries, brandVoice = "" }) {
   const [showTemplates, setShowTemplates] = useState(false);
   const [showSeriesManager, setShowSeriesManager] = useState(false);
   const [form, setForm] = useState(() => {
@@ -708,8 +709,13 @@ export function ContentForm({ initial, campaigns, onSave, onDelete, onDuplicate,
         </FormSection>
       ) : (
         <FormSection key="copy-notes" title="Copy & Notes" defaultOpen={true}>
-          <Txt label="Draft copy / caption" rows={3} value={form.draftCopy} onChange={e=>f("draftCopy",e.target.value)} placeholder="Paste your draft caption or copy here..." />
-          <Txt label="Notes" value={form.notes} onChange={e=>f("notes",e.target.value)} placeholder="Production notes, links, angles..." />
+          <DraftWithAI
+            item={form}
+            brandVoice={brandVoice}
+            onAccept={(caption) => f("draftCopy", caption)}
+          />
+          <Txt label="Draft copy / caption" rows={3} value={form.draftCopy} onChange={e=>f("draftCopy",e.target.value)} placeholder="Paste your draft caption or copy here…" />
+          <Txt label="Notes" value={form.notes} onChange={e=>f("notes",e.target.value)} placeholder="Production notes, links, angles…" />
         </FormSection>
       )}
 

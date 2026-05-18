@@ -125,7 +125,7 @@ function parseCSV(text) {
 }
 
 // ── PIPELINE ──────────────────────────────────────────────────────────────
-export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, products, setProducts, currentMember, commentCounts = {}, contentSeries = [], onManageSeries, addSeries, updateSeriesItem, deleteSeries, openItemId, clearOpenItemId }) {
+export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, products, setProducts, currentMember, commentCounts = {}, contentSeries = [], onManageSeries, addSeries, updateSeriesItem, deleteSeries, openItemId, clearOpenItemId, brandVoice = "" }) {
   const isMobile = useIsMobile();
   const [view, setView] = useState("kanban");
   const [showForm, setShowForm] = useState(false);
@@ -433,7 +433,8 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
             onDelete={editItem?.id ? () => deleteItemHandler(editItem) : null}
             onDuplicate={editItem?.id ? () => duplicateItem(editItem) : null}
             onClose={()=>setShowForm(false)} products={products} setProducts={setProducts}
-            currentMember={currentMember} contentSeries={contentSeries} onManageSeries={onManageSeries} />
+            currentMember={currentMember} contentSeries={contentSeries} onManageSeries={onManageSeries}
+            brandVoice={brandVoice} />
         </Modal>
       )}
 
@@ -446,7 +447,7 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
 }
 
 // ── CALENDAR ──────────────────────────────────────────────────────────────
-export function Calendar({ items, addItem, updateItem, deleteItem, campaigns, products, setProducts, currentMember, commentCounts = {}, contentSeries = [], addSeries, updateSeriesItem, deleteSeries }) {
+export function Calendar({ items, addItem, updateItem, deleteItem, campaigns, products, setProducts, currentMember, commentCounts = {}, contentSeries = [], addSeries, updateSeriesItem, deleteSeries, brandVoice = "" }) {
   const isMobile = useIsMobile();
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
@@ -589,7 +590,8 @@ export function Calendar({ items, addItem, updateItem, deleteItem, campaigns, pr
               onDelete={editItem?.id ? () => deleteItemHandler(editItem) : null}
               onDuplicate={editItem?.id ? () => duplicateItem(editItem) : null}
               onClose={()=>setShowForm(false)} products={products} setProducts={setProducts}
-              currentMember={currentMember} contentSeries={contentSeries} />
+              currentMember={currentMember} contentSeries={contentSeries}
+              brandVoice={brandVoice} />
           </Modal>
         )}
       </div>
