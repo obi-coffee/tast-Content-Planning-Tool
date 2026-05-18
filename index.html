@@ -14,13 +14,21 @@
         theme: {
           extend: {
             colors: {
-              // ── tast core palette ──────────────────────
+              // ── tast core palette (April 2026 guide) ────
               'rich-black': '#1A1A1A',
-              'london-fog': '#FAF9F6',
-              'no2': '#F287B7',
-              'pink': '#F05881',
-              'no3': '#EF4056',
-              'raspberry': '#A23053',
+              'mist':       '#F8F8F5',  // primary light background
+              'bloom':      '#FDFCF8',  // light card background
+              'london-fog': '#F8F8F5',  // legacy alias → mist (safe to remove later)
+              'no2':        '#F287B7',
+              'pink':       '#F05881',  // primary CTA only
+              'no3':        '#EF4056',
+              'raspberry':  '#A23053',  // secondary emphasis
+              // Neutral scale — for inactive, borders, text-on-light
+              'neutral-50':  '#F4F2EE',
+              'neutral-100': '#E9E5DD',
+              'neutral-200': '#D9D6D0',
+              'neutral-300': '#B8B4AC',
+              'neutral-500': '#6B6862',
             },
             fontFamily: {
               // Inter Variable — Headlines, UI, navigation
@@ -38,14 +46,14 @@
     </script>
     <style>
       body {
-        background: #FAF9F6;
+        background: #F8F8F5; /* mist */
         font-family: 'Inter', system-ui, sans-serif;
         color: #1A1A1A;
       }
       ::-webkit-scrollbar { width: 6px; height: 6px; }
       ::-webkit-scrollbar-track { background: transparent; }
-      ::-webkit-scrollbar-thumb { background: #e0dcd5; border-radius: 3px; }
-      ::-webkit-scrollbar-thumb:hover { background: #c5c0b8; }
+      ::-webkit-scrollbar-thumb { background: #D9D6D0; border-radius: 3px; }
+      ::-webkit-scrollbar-thumb:hover { background: #B8B4AC; }
     </style>
   </head>
   <body>
