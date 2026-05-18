@@ -3,7 +3,7 @@ import { PIPELINE_STAGES, TYPE_OPTIONS, STAGE_META, driveThumb, Tag, Modal, Inp,
 import CommentsPanel from "./components/CommentsPanel.jsx";
 import { Avatar } from "./components/Avatar.jsx";
 
-export function Campaigns({ campaigns, addCampaign, updateCampaign, deleteCampaign, allItems, addItem, updateItem, deleteItem, products=[], setProducts=()=>{}, currentMember, commentCounts = {}, contentSeries = [] }) {
+export function Campaigns({ campaigns, addCampaign, updateCampaign, deleteCampaign, allItems, addItem, updateItem, deleteItem, products=[], setProducts=()=>{}, currentMember, commentCounts = {}, contentSeries = [], brandVoice = "" }) {
   const [active, setActive] = useState(null);
   const [activeTab, setActiveTab] = useState("content");
   const [showCampForm, setShowCampForm] = useState(false);
@@ -170,7 +170,8 @@ export function Campaigns({ campaigns, addCampaign, updateCampaign, deleteCampai
               onDelete={editContent?.id?deleteContent:null}
               onClose={()=>{setShowContentForm(false);setEditContent(null);}}
               lockCampaignId={true} products={products} setProducts={setProducts}
-              currentMember={currentMember} contentSeries={contentSeries} />
+              currentMember={currentMember} contentSeries={contentSeries}
+              brandVoice={brandVoice} />
           </Modal>
         )}
         {commentItemId && (
