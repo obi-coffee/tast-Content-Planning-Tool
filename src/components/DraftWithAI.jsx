@@ -1,6 +1,11 @@
 import { useState } from "react";
 
-const EDGE_FN_URL = "https://yfixjafskptbhjsbvxwf.supabase.co/functions/v1/generate-caption";
+// Same-origin Vercel serverless function — see /api/caption.js.
+// Previously this called a Supabase Edge Function, but that function's CORS
+// allowlist didn't include Vercel preview URLs, so previews failed with
+// 'Failed to fetch.' The Vercel function lives at the same origin as the
+// app (no CORS) and uses the ANTHROPIC_API_KEY env var on Vercel.
+const CAPTION_FN_URL = "/api/caption";
 
 const TONE_OPTIONS = [
   "On-brand default",
@@ -57,14 +62,17 @@ export function DraftWithAI({ item, brandVoice, onAccept }) {
     }
     setLoading(true); setCaptions([]); setError(null); setAcceptedIdx(null);
     try {
-      const resp = await fetch(EDGE_FN_URL, {
+      // Include series in context (Vercel /api/caption doesn't accept a separate
+      // theme field). The series is meaningful — it tells the model which
+      // narrative thread this post is part of.
+      const fullContext = series ? `${context} — Content series: ${series}` : context;
+      const resp = await fetch(CAPTION_FN_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           channel,
-          context,
+          context: fullContext,
           product,
-          theme: series || "(no theme)",
           tone,
           brandVoice,
         }),

@@ -740,7 +740,9 @@ export function BrandVoice({ voice, setVoice }) {
 
 // ── CAPTIONS ──────────────────────────────────────────────────────────────
 export function Captions({ brandVoice, contentSeries = [] }) {
-  const EDGE_FN_URL = "https://yfixjafskptbhjsbvxwf.supabase.co/functions/v1/generate-caption";
+  // Same-origin Vercel serverless function. See /api/caption.js and the
+  // matching note in components/DraftWithAI.jsx for the CORS context.
+  const CAPTION_FN_URL = "/api/caption";
 
   const [channel, setChannel] = useState("Instagram");
   const [context, setContext] = useState("");
@@ -756,10 +758,15 @@ export function Captions({ brandVoice, contentSeries = [] }) {
     if (!context.trim()) return;
     setLoading(true); setCaptions([]); setErrorMsg(null);
     try {
-      const resp = await fetch(EDGE_FN_URL, {
+      // Fold theme (content series) into context — /api/caption doesn't accept
+      // a separate theme field. "(no theme)" sentinel value is ignored.
+      const fullContext = theme && theme !== "(no theme)"
+        ? `${context} — Content series: ${theme}`
+        : context;
+      const resp = await fetch(CAPTION_FN_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ channel, context, product, theme, tone, brandVoice }),
+        body: JSON.stringify({ channel, context: fullContext, product, tone, brandVoice }),
       });
       const data = await resp.json();
       if (!resp.ok || data.error) throw new Error(data.error || `HTTP ${resp.status}`);
@@ -795,7 +802,7 @@ export function Captions({ brandVoice, contentSeries = [] }) {
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
           <p className="text-sm font-semibold text-red-700 mb-1">Generation failed</p>
           <p className="text-xs font-mono text-red-500 break-all">{errorMsg}</p>
-          <p className="text-xs text-red-400 mt-2">Make sure the Edge Function is deployed and ANTHROPIC_API_KEY is set in Supabase Vault.</p>
+          <p className="text-xs text-red-400 mt-2">Make sure ANTHROPIC_API_KEY is set in your Vercel project's environment variables.</p>
         </div>
       )}
       {captions.length > 0 && (
