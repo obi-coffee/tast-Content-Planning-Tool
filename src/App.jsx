@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { defaultBrandVoice } from "./Components.jsx";
-import { Pipeline, Calendar, BrandVoice, Captions } from "./Views.jsx";
+import { Pipeline, Calendar } from "./Views.jsx";
 import { Campaigns } from "./Campaigns.jsx";
 import { InstagramGrid } from "./InstagramGrid.jsx";
 import { Analytics } from "./Analytics.jsx";
+import { Mine } from "./Mine.jsx";
+import { Settings } from "./Settings.jsx";
 import { useContent, useCampaigns, useProducts, useBrandVoice } from "./hooks/useContent.js";
 import { useTeamMember } from "./hooks/useTeamMember.js";
 import { useCommentCounts } from "./hooks/useCommentCounts.js";
@@ -12,36 +14,25 @@ import TeamPicker from "./components/TeamPicker.jsx";
 import { Avatar } from "./components/Avatar.jsx";
 import { ToastProvider, useToast } from "./components/Toast.jsx";
 
-// ── Tab groups for organized navigation ───────────────────────────────────
-const TAB_GROUPS = [
-  {
-    label: "Plan",
-    tabs: [
-      { id: "pipeline",  label: "Pipeline" },
-      { id: "calendar",  label: "Calendar" },
-      { id: "campaigns", label: "Campaigns" },
-    ],
-  },
-  {
-    label: "Create",
-    tabs: [
-      { id: "captions",   label: "Captions" },
-      { id: "brandvoice", label: "Brand Voice" },
-    ],
-  },
-  {
-    label: "Review",
-    tabs: [
-      { id: "grid",      label: "Grid" },
-      { id: "analytics", label: "Analytics" },
-    ],
-  },
+// ── Lifecycle-ordered tabs ────────────────────────────────────────────────
+// Was: Plan / Create / Review groupings — but a single piece of content
+// flows through all three, so users hopped tabs constantly. Flat order now
+// follows: yours-right-now → plan → schedule → bundles → preview → measure
+// → settings. See plan doc, Wave 1 §1.4.
+const TABS = [
+  { id: "mine",      label: "Mine" },
+  { id: "pipeline",  label: "Pipeline" },
+  { id: "calendar",  label: "Calendar" },
+  { id: "campaigns", label: "Campaigns" },
+  { id: "grid",      label: "Grid" },
+  { id: "analytics", label: "Analytics" },
+  { id: "settings",  label: "Settings" },
 ];
 
-const ALL_TABS = TAB_GROUPS.flatMap(g => g.tabs);
-
 function AppInner() {
-  const [activeTab, setActiveTab] = useState("pipeline");
+  const [activeTab, setActiveTab] = useState("mine");
+  // Cross-tab "open this item" signal. Mine sets it, Pipeline reads + clears.
+  const [openItemId, setOpenItemId] = useState(null);
 
   // ── All data from Supabase ──────────────────────────────────────────────
   const { items,     loading: itemsLoading,     addItem,      updateItem,      deleteItem      } = useContent();
@@ -97,31 +88,35 @@ function AppInner() {
     toast(`Campaign "${camp?.name || ''}" deleted`, 'info');
   };
 
+  // ── Cross-tab navigation: Mine → Pipeline w/ a specific item opened ─────
+  const openItemFromMine = (item) => {
+    setOpenItemId(item.id);
+    setActiveTab("pipeline");
+  };
+
   return (
     <>
       {showPicker && <TeamPicker onChoose={chooseMember} />}
 
-      <div className="min-h-screen bg-london-fog font-inter">
+      <div className="min-h-screen bg-mist font-inter">
         {/* ── Header ── */}
-        <div className="bg-london-fog border-b border-rich-black/8 sticky top-0 z-40">
+        <div className="bg-mist border-b border-rich-black/8 sticky top-0 z-40">
           <div className="w-full px-6 lg:px-10 flex items-center justify-between h-14">
             {/* Logo + Nav in one row */}
             <div className="flex items-center gap-8">
-              <span className="text-lg font-bold text-rich-black tracking-tight shrink-0">tast</span>
+              <span className="text-lg font-bold text-rich-black tracking-tight shrink-0">tāst</span>
               <nav className="flex items-center gap-0.5 overflow-x-auto">
-                {TAB_GROUPS.map((group) => (
-                  group.tabs.map((t) => (
-                    <button key={t.id} onClick={() => setActiveTab(t.id)}
-                      className="text-[13px] px-3 py-1.5 rounded-lg whitespace-nowrap transition-all duration-150 font-inter"
-                      style={activeTab === t.id
-                        ? { background: "#F0588112", color: "#F05881", fontWeight: 600 }
-                        : { color: "#1A1A1A50", fontWeight: 500 }}>
-                      {t.label}
-                      {t.id === "pipeline" && items.length > 0 && (
-                        <span className="ml-1 font-mono text-[10px] opacity-60">{items.length}</span>
-                      )}
-                    </button>
-                  ))
+                {TABS.map(t => (
+                  <button key={t.id} onClick={() => setActiveTab(t.id)}
+                    className="text-[13px] px-3 py-1.5 rounded-lg whitespace-nowrap transition-all duration-150 font-inter"
+                    style={activeTab === t.id
+                      ? { background: "#F0588112", color: "#F05881", fontWeight: 600 }
+                      : { color: "#1A1A1A50", fontWeight: 500 }}>
+                    {t.label}
+                    {t.id === "pipeline" && items.length > 0 && (
+                      <span className="ml-1 font-mono text-[10px] opacity-60">{items.length}</span>
+                    )}
+                  </button>
                 ))}
               </nav>
             </div>
@@ -140,18 +135,27 @@ function AppInner() {
             <div className="flex items-center justify-center py-20">
               <div className="text-center">
                 <div className="w-8 h-8 rounded-full border-2 border-rich-black/10 border-t-pink animate-spin mx-auto mb-3" />
-                <p className="text-xs font-mono uppercase tracking-wider text-rich-black/30">Loading...</p>
+                <p className="text-xs font-inter font-medium text-rich-black/40">Loading…</p>
               </div>
             </div>
           ) : (
             <>
-              {activeTab === "pipeline"  && <Pipeline    items={items} addItem={addItemWithToast} updateItem={updateItemWithToast} deleteItem={deleteItemWithToast} campaigns={campaigns} products={products} setProducts={setProducts} currentMember={member} commentCounts={commentCounts} contentSeries={contentSeries} addSeries={addSeries} updateSeriesItem={updateSeries} deleteSeries={deleteSeries} />}
+              {activeTab === "mine" && (
+                <Mine
+                  items={items}
+                  commentCounts={commentCounts}
+                  currentMember={member}
+                  campaigns={campaigns}
+                  contentSeries={contentSeries}
+                  onOpenItem={openItemFromMine}
+                />
+              )}
+              {activeTab === "pipeline"  && <Pipeline    items={items} addItem={addItemWithToast} updateItem={updateItemWithToast} deleteItem={deleteItemWithToast} campaigns={campaigns} products={products} setProducts={setProducts} currentMember={member} commentCounts={commentCounts} contentSeries={contentSeries} addSeries={addSeries} updateSeriesItem={updateSeries} deleteSeries={deleteSeries} openItemId={openItemId} clearOpenItemId={() => setOpenItemId(null)} />}
               {activeTab === "calendar"  && <Calendar    items={items} addItem={addItemWithToast} updateItem={updateItemWithToast} deleteItem={deleteItemWithToast} campaigns={campaigns} products={products} setProducts={setProducts} currentMember={member} commentCounts={commentCounts} contentSeries={contentSeries} addSeries={addSeries} updateSeriesItem={updateSeries} deleteSeries={deleteSeries} />}
               {activeTab === "campaigns" && <Campaigns   campaigns={campaigns} addCampaign={addCampaignWithToast} updateCampaign={updateCampaign} deleteCampaign={deleteCampaignWithToast} allItems={items} addItem={addItemWithToast} updateItem={updateItemWithToast} deleteItem={deleteItemWithToast} products={products} setProducts={setProducts} currentMember={member} commentCounts={commentCounts} contentSeries={contentSeries} />}
               {activeTab === "grid"      && <InstagramGrid items={items} addItem={addItemWithToast} updateItem={updateItemWithToast} deleteItem={deleteItemWithToast} campaigns={campaigns} products={products} setProducts={setProducts} currentMember={member} commentCounts={commentCounts} contentSeries={contentSeries} />}
               {activeTab === "analytics" && <Analytics   items={items} campaigns={campaigns} updateItem={updateItemWithToast} contentSeries={contentSeries} />}
-              {activeTab === "brandvoice" && <BrandVoice  voice={brandVoice} setVoice={setBrandVoice} />}
-              {activeTab === "captions"  && <Captions    brandVoice={brandVoice} contentSeries={contentSeries} />}
+              {activeTab === "settings"  && <Settings    brandVoice={brandVoice} setBrandVoice={setBrandVoice} contentSeries={contentSeries} />}
             </>
           )}
         </div>
