@@ -125,11 +125,19 @@ function parseCSV(text) {
 }
 
 // ── PIPELINE ──────────────────────────────────────────────────────────────
-export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, products, setProducts, currentMember, commentCounts = {}, contentSeries = [], onManageSeries, addSeries, updateSeriesItem, deleteSeries }) {
+export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, products, setProducts, currentMember, commentCounts = {}, contentSeries = [], onManageSeries, addSeries, updateSeriesItem, deleteSeries, openItemId, clearOpenItemId }) {
   const isMobile = useIsMobile();
   const [view, setView] = useState("kanban");
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState(null);
+
+  // Cross-tab open signal — Mine sets openItemId in App, we honor it once.
+  useEffect(() => {
+    if (!openItemId) return;
+    const item = items.find(i => i.id === openItemId);
+    if (item) { setEditItem(item); setShowForm(true); }
+    clearOpenItemId?.();
+  }, [openItemId, items, clearOpenItemId]);
   const [dragItem, setDragItem] = useState(null);
   const [dragOver, setDragOver] = useState(null);
   const [seriesFilter, setSeriesFilter] = useState("all");
@@ -233,7 +241,10 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
   return (
     <div>
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-        <h2 className="font-inter text-xl font-bold text-rich-black">Content Pipeline</h2>
+        <div>
+          <h2 className="font-inter text-xl font-bold text-rich-black">Pipeline</h2>
+          <p className="font-arizona text-sm text-rich-black/50 italic mt-0.5">What we're building, where it is.</p>
+        </div>
         <div className="flex items-center gap-2 flex-wrap">
           <button onClick={() => { setBulkMode(!bulkMode); if (bulkMode) clearSelection(); }}
             className="text-xs px-3 py-1.5 rounded-lg border font-medium font-inter transition-all duration-150"
@@ -279,11 +290,11 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
         </div>
       )}
 
-      {/* Platform filter pills */}
+      {/* Platform filter pills — selected = rich-black (state), not pink (CTA) */}
       <div className="flex gap-1.5 flex-wrap mb-2">
         <button onClick={()=>setPlatformFilter("all")}
           className="text-xs px-2.5 py-1 rounded-full border font-medium transition-all"
-          style={platformFilter==="all"?{background:"#F05881",color:"white",borderColor:"#F05881"}:{background:"white",color:"#1A1A1A60",borderColor:"#1A1A1A15"}}>
+          style={platformFilter==="all"?{background:"#1A1A1A",color:"white",borderColor:"#1A1A1A"}:{background:"white",color:"#1A1A1A60",borderColor:"#1A1A1A15"}}>
           All platforms
         </button>
         {CHANNEL_OPTIONS.map(ch => {
@@ -291,7 +302,7 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
           return (
             <button key={ch} onClick={()=>setPlatformFilter(platformFilter===ch?"all":ch)}
               className="text-xs px-2.5 py-1 rounded-full border font-medium transition-all"
-              style={platformFilter===ch?{background:"#F05881",color:"white",borderColor:"#F05881"}:{background:"white",color:"#1A1A1A60",borderColor:"#1A1A1A15"}}>
+              style={platformFilter===ch?{background:"#1A1A1A",color:"white",borderColor:"#1A1A1A"}:{background:"white",color:"#1A1A1A60",borderColor:"#1A1A1A15"}}>
               {ch} <span className="opacity-60">({count})</span>
             </button>
           );
@@ -321,9 +332,9 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
       {items.length === 0 ? (
         <EmptyState
           icon="+"
-          title="No content yet"
-          description="Start building your content pipeline. Add your first piece of content or import from CSV."
-          actionLabel="+ Add Content"
+          title="Nothing in the pipeline yet."
+          description="A pipeline is just a list of things you're working on. Got an idea? Add it, even if it's rough. Or pull in last quarter's calendar via Import CSV."
+          actionLabel="Add the first one"
           onAction={() => { setEditItem(null); setShowForm(true); }}
         />
       ) : view==="kanban" ? (
@@ -588,15 +599,18 @@ export function Calendar({ items, addItem, updateItem, deleteItem, campaigns, pr
   // ── Desktop calendar ──
   return (
     <div>
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <div className="flex items-center gap-3">
-          <button onClick={view==="week"?prevWeek:prevMonth} className="text-rich-black/30 hover:text-rich-black/60 text-lg">‹</button>
-          <h2 className="font-inter text-xl font-bold text-rich-black">
-            {view==="week"
-              ? `${weekDays[0].toLocaleDateString("en-US",{month:"short",day:"numeric"})} – ${weekDays[6].toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}`
-              : `${view==="gap"?"Gap — ":""}${MONTH_NAMES[month]} ${year}`}
-          </h2>
-          <button onClick={view==="week"?nextWeek:nextMonth} className="text-rich-black/30 hover:text-rich-black/60 text-lg">›</button>
+      <div className="flex items-start justify-between mb-4 flex-wrap gap-2">
+        <div>
+          <div className="flex items-center gap-3">
+            <button onClick={view==="week"?prevWeek:prevMonth} className="text-rich-black/30 hover:text-rich-black/60 text-lg">‹</button>
+            <h2 className="font-inter text-xl font-bold text-rich-black">
+              {view==="week"
+                ? `${weekDays[0].toLocaleDateString("en-US",{month:"short",day:"numeric"})} – ${weekDays[6].toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}`
+                : `${view==="gap"?"Gap — ":""}${MONTH_NAMES[month]} ${year}`}
+            </h2>
+            <button onClick={view==="week"?nextWeek:nextMonth} className="text-rich-black/30 hover:text-rich-black/60 text-lg">›</button>
+          </div>
+          <p className="font-arizona text-sm text-rich-black/50 italic mt-0.5 ml-7">When it ships, where, by whom.</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex bg-rich-black/5 rounded-lg p-0.5">

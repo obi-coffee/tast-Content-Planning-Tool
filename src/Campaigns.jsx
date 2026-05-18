@@ -187,16 +187,19 @@ export function Campaigns({ campaigns, addCampaign, updateCampaign, deleteCampai
   // ── Campaign List ──
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-inter text-xl font-bold text-rich-black">Campaigns</h2>
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <div>
+          <h2 className="font-inter text-xl font-bold text-rich-black">Campaigns</h2>
+          <p className="font-arizona text-sm text-rich-black/50 italic mt-0.5">The bundles. A drop, a launch, a story that needs more than one post.</p>
+        </div>
         <button onClick={()=>{setCampForm(emptyCamp);setShowCampForm(true);}} style={{background:"#F05881"}} className="hover:opacity-90 text-white text-sm px-4 py-2 rounded-lg font-medium">+ New Campaign</button>
       </div>
       {campaigns.length===0 && (
         <EmptyState
-          icon="📋"
-          title="No campaigns yet"
-          description="Campaigns help you group content around a specific theme, drop, or event."
-          actionLabel="+ New Campaign"
+          icon="◇"
+          title="No campaigns yet."
+          description="A campaign groups posts around a single story — Vol. 3, the beta launch, a partner reveal. Start one, even if the story isn't fully there."
+          actionLabel="Start a campaign"
           onAction={() => { setCampForm(emptyCamp); setShowCampForm(true); }}
         />
       )}

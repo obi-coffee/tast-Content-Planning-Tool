@@ -29,7 +29,7 @@ export function Avatar({ memberId, size = 28, showName = false }) {
 export function AssigneeSelector({ value, onChange, label = 'Assign to' }) {
   return (
     <div className="flex flex-col gap-2">
-      {label && <label className="font-mono text-[9px] uppercase tracking-widest text-rich-black/40">{label}</label>}
+      {label && <label className="font-inter text-[12px] font-medium text-rich-black/55">{label}</label>}
       <div className="flex gap-2 flex-wrap">
         <button
           onClick={() => onChange(null)}

@@ -81,7 +81,7 @@ export function SeriesPicker({ value, onChange, series = [], onManage }) {
   return (
     <div className="mb-3">
       <div className="flex items-center justify-between mb-1.5">
-        <label className="font-mono text-[9px] uppercase tracking-widest text-rich-black/40">Content Series</label>
+        <label className="font-inter text-[12px] font-medium text-rich-black/55">Content series</label>
         {onManage && (
           <button type="button" onClick={onManage} className="text-[10px] font-inter font-medium text-pink hover:opacity-70">
             + Manage series
@@ -145,14 +145,14 @@ export function SeriesManager({ series, onAdd, onUpdate, onDelete, onClose }) {
       <p className="text-xs text-rich-black/30 mb-4">Create and manage your content series. Each series groups related content around a theme or format.</p>
 
       <div className="bg-london-fog rounded-xl p-4 mb-5 border border-rich-black/8">
-        <p className="font-mono text-[9px] uppercase tracking-widest text-rich-black/35 mb-3">
-          {editId ? "Edit Series" : "New Series"}
+        <p className="font-inter text-[12px] font-semibold text-rich-black/50 mb-3">
+          {editId ? "Edit series" : "New series"}
         </p>
         <Inp label="Series name" value={name} onChange={e => setName(e.target.value)} placeholder='e.g. "Marginalia"' />
         <Inp label="Description" value={description} onChange={e => setDescription(e.target.value)} placeholder="What is this series about?" />
         <Sel label="Primary channel" options={CHANNEL_OPTIONS} value={primaryChannel} onChange={e => setPrimaryChannel(e.target.value)} />
         <div className="mb-3">
-          <label className="block font-mono text-[9px] uppercase tracking-widest text-rich-black/40 mb-1.5">Color</label>
+          <label className="block font-inter text-[12px] font-medium text-rich-black/55 mb-1.5">Color</label>
           <div className="flex gap-2 flex-wrap">
             {SERIES_COLORS.map(c => (
               <button key={c} type="button" onClick={() => setColor(c)}
@@ -173,7 +173,7 @@ export function SeriesManager({ series, onAdd, onUpdate, onDelete, onClose }) {
         </div>
       </div>
 
-      <p className="font-mono text-[9px] uppercase tracking-widest text-rich-black/35 mb-2">Your Series ({series.length})</p>
+      <p className="font-inter text-[12px] font-semibold text-rich-black/50 mb-2">Your series <span className="font-mono text-rich-black/30">({series.length})</span></p>
       {series.length === 0
         ? <p className="text-sm text-rich-black/20">No series yet — create your first one above.</p>
         : (
@@ -246,10 +246,15 @@ export function Modal({ title, onClose, children }) {
   );
 }
 
+// Form field labels: sentence-case Inter, not all-caps mono.
+// The mono/uppercase treatment fights the warm editorial register;
+// reserve it for eyebrows and actual data.
+const FIELD_LABEL_CLS = "block font-inter text-[12px] font-medium text-rich-black/55 mb-1.5";
+
 export function Inp({ label, ...p }) {
   return (
     <div className="mb-3">
-      {label && <label className="block font-mono text-[9px] uppercase tracking-widest text-rich-black/40 mb-1.5">{label}</label>}
+      {label && <label className={FIELD_LABEL_CLS}>{label}</label>}
       <input className="w-full border border-rich-black/12 rounded-lg px-3 py-3 md:py-2.5 text-sm font-inter text-rich-black bg-white focus:outline-none focus:ring-2 focus:ring-pink/20 focus:border-pink/40 transition-colors" {...p} />
     </div>
   );
@@ -258,7 +263,7 @@ export function Inp({ label, ...p }) {
 export function Sel({ label, options, ...p }) {
   return (
     <div className="mb-3">
-      {label && <label className="block font-mono text-[9px] uppercase tracking-widest text-rich-black/40 mb-1.5">{label}</label>}
+      {label && <label className={FIELD_LABEL_CLS}>{label}</label>}
       <select className="w-full border border-rich-black/12 rounded-lg px-3 py-3 md:py-2.5 text-sm font-inter text-rich-black bg-white focus:outline-none focus:ring-2 focus:ring-pink/20 focus:border-pink/40 transition-colors" {...p}>
         {options.map(o => <option key={o}>{o}</option>)}
       </select>
@@ -269,7 +274,7 @@ export function Sel({ label, options, ...p }) {
 export function Txt({ label, rows=4, ...p }) {
   return (
     <div className="mb-3">
-      {label && <label className="block font-mono text-[9px] uppercase tracking-widest text-rich-black/40 mb-1.5">{label}</label>}
+      {label && <label className={FIELD_LABEL_CLS}>{label}</label>}
       <textarea rows={rows} className="w-full border border-rich-black/12 rounded-lg px-3 py-2.5 text-sm font-body text-rich-black bg-white focus:outline-none focus:ring-2 focus:ring-pink/20 focus:border-pink/40 resize-y min-h-[60px] transition-colors" {...p} />
     </div>
   );
@@ -437,12 +442,19 @@ export function PhaseTag({ dateStr, className = "" }) {
 }
 
 // ── Empty State ───────────────────────────────────────────────────────────
+// Brand pattern: acknowledge + invite. Description renders in editorial
+// Georgia italic so a "no content yet" moment reads like a friendly note,
+// not a system error.
 export function EmptyState({ icon = "*", title, description, actionLabel, onAction }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-rich-black/5 flex items-center justify-center text-2xl text-rich-black/20 mb-4">{icon}</div>
-      <p className="text-sm font-inter font-semibold text-rich-black mb-1">{title}</p>
-      {description && <p className="text-xs text-rich-black/40 max-w-xs mb-4">{description}</p>}
+      <div className="w-14 h-14 rounded-2xl bg-rich-black/5 flex items-center justify-center text-2xl text-rich-black/25 mb-4">{icon}</div>
+      <p className="text-base font-inter font-semibold text-rich-black mb-1.5">{title}</p>
+      {description && (
+        <p className="font-arizona text-sm text-rich-black/50 italic max-w-sm mb-5 leading-relaxed">
+          {description}
+        </p>
+      )}
       {actionLabel && onAction && (
         <button onClick={onAction}
           className="text-sm text-white px-5 py-2.5 rounded-lg bg-pink hover:opacity-90 transition-opacity font-inter font-medium">
@@ -454,13 +466,15 @@ export function EmptyState({ icon = "*", title, description, actionLabel, onActi
 }
 
 // ── Comment Badge ─────────────────────────────────────────────────────────
+// Uses raspberry (#A23053) — secondary emphasis, per the April 2026 guide.
+// Pink is reserved for primary CTAs; counts are emphasis, not CTAs.
 export function CommentBadge({ count, onClick }) {
   if (!count) return null;
   return (
     <button
       onClick={e => { e.stopPropagation(); onClick?.(); }}
-      className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full transition-colors hover:bg-[#F05881]/10"
-      style={{ color: "#F05881" }}
+      className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full transition-colors hover:bg-[#A23053]/10"
+      style={{ color: "#A23053" }}
       title={`${count} comment${count !== 1 ? 's' : ''}`}
     >
       <span style={{ fontSize: 10 }}>💬</span>
@@ -470,6 +484,8 @@ export function CommentBadge({ count, onClick }) {
 }
 
 // ── Collapsible Form Section ──────────────────────────────────────────────
+// Section titles switch from 9px-mono-uppercase to Inter sentence case —
+// still an eyebrow (small, muted, with a divider), but warmer and on-brand.
 export function FormSection({ title, defaultOpen = true, children }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
@@ -477,7 +493,7 @@ export function FormSection({ title, defaultOpen = true, children }) {
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        className="flex items-center justify-between w-full py-2.5 font-mono text-[9px] uppercase tracking-widest text-rich-black/35 hover:text-rich-black/60 transition-colors border-b border-rich-black/8 mb-2"
+        className="flex items-center justify-between w-full py-2.5 font-inter text-[12px] font-semibold text-rich-black/50 hover:text-rich-black/75 transition-colors border-b border-rich-black/8 mb-2"
       >
         {title}
         <span className="text-sm transition-transform" style={{ transform: open ? 'rotate(0deg)' : 'rotate(-90deg)' }}>
