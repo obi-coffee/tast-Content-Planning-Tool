@@ -197,6 +197,10 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
   const deleteItemHandler = async (item) => {
     await deleteItem(item.id).catch(console.error);
   };
+  const duplicateItem = async (item) => {
+    const { id, created_at, ...rest } = item;
+    await addItem({ ...rest, title: item.title + " (copy)", stage: "Idea" }).catch(console.error);
+  };
   const moveStage = (item, stage) => {
     const { id, created_at, ...rest } = item;
     updateItem(id, { ...rest, stage }).catch(console.error);
@@ -207,6 +211,12 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
     if (platformFilter !== "all") {
       const primary = normalizeChannels(item.channels).primary;
       if (primary !== platformFilter) return false;
+    }
+    // Auto-hide published items older than 30 days
+    if (item.stage === "Published" && item.date) {
+      const publishedDate = new Date(item.date + "T00:00:00");
+      const daysSince = (Date.now() - publishedDate.getTime()) / (1000 * 60 * 60 * 24);
+      if (daysSince > 30) return false;
     }
     return true;
   });
@@ -310,7 +320,12 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
       ) : view==="kanban" ? (
         <div className="flex gap-3 pb-4" style={{minHeight:400}}>
           {PIPELINE_STAGES.map(stage=>{
-            const stageItems = filteredItems.filter(i=>i.stage===stage);
+            const stageItems = filteredItems.filter(i=>i.stage===stage).sort((a,b) => {
+              if (a.date && b.date) return a.date.localeCompare(b.date);
+              if (a.date) return -1;
+              if (b.date) return 1;
+              return 0;
+            });
             const isOver = dragOver===stage;
             return (
               <div key={stage}
@@ -341,7 +356,12 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
       ) : (
         <div>
           {PIPELINE_STAGES.map(stage=>{
-            const stageItems = filteredItems.filter(i=>i.stage===stage);
+            const stageItems = filteredItems.filter(i=>i.stage===stage).sort((a,b) => {
+              if (a.date && b.date) return a.date.localeCompare(b.date);
+              if (a.date) return -1;
+              if (b.date) return 1;
+              return 0;
+            });
             if (!stageItems.length) return null;
             return (
               <div key={stage} className="mb-5">
@@ -391,6 +411,7 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
         <Modal title={editItem?.id?"Edit Content":"New Content"} onClose={()=>setShowForm(false)}>
           <ContentForm initial={editItem} campaigns={campaigns} onSave={saveItem}
             onDelete={editItem?.id ? () => deleteItemHandler(editItem) : null}
+            onDuplicate={editItem?.id ? () => duplicateItem(editItem) : null}
             onClose={()=>setShowForm(false)} products={products} setProducts={setProducts}
             currentMember={currentMember} contentSeries={contentSeries} onManageSeries={onManageSeries} />
         </Modal>
@@ -428,6 +449,10 @@ export function Calendar({ items, addItem, updateItem, deleteItem, campaigns, pr
   };
   const deleteItemHandler = async (item) => {
     await deleteItem(item.id).catch(console.error);
+  };
+  const duplicateItem = async (item) => {
+    const { id, created_at, ...rest } = item;
+    await addItem({ ...rest, title: item.title + " (copy)", stage: "Idea" }).catch(console.error);
   };
 
   const dateKey = (y,m,d) => `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
@@ -542,6 +567,7 @@ export function Calendar({ items, addItem, updateItem, deleteItem, campaigns, pr
           <Modal title={editItem?.id?"Edit Content":"New Content"} onClose={()=>setShowForm(false)}>
             <ContentForm initial={editItem} campaigns={campaigns} onSave={saveItem}
               onDelete={editItem?.id ? () => deleteItemHandler(editItem) : null}
+              onDuplicate={editItem?.id ? () => duplicateItem(editItem) : null}
               onClose={()=>setShowForm(false)} products={products} setProducts={setProducts}
               currentMember={currentMember} contentSeries={contentSeries} />
           </Modal>
@@ -656,6 +682,7 @@ export function Calendar({ items, addItem, updateItem, deleteItem, campaigns, pr
         <Modal title={editItem?.id?"Edit Content":"New Content"} onClose={()=>setShowForm(false)}>
           <ContentForm initial={editItem} campaigns={campaigns} onSave={saveItem}
             onDelete={editItem?.id ? () => deleteItemHandler(editItem) : null}
+            onDuplicate={editItem?.id ? () => duplicateItem(editItem) : null}
             onClose={()=>setShowForm(false)} products={products} setProducts={setProducts}
             currentMember={currentMember} contentSeries={contentSeries} />
         </Modal>

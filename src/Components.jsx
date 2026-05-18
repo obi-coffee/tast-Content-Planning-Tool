@@ -562,7 +562,7 @@ export function CampaignProgress({ items }) {
   );
 }
 
-export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, lockCampaignId, products=[], setProducts=()=>{}, onOpenComments, currentMember, contentSeries=[], onManageSeries }) {
+export function ContentForm({ initial, campaigns, onSave, onDelete, onDuplicate, onClose, lockCampaignId, products=[], setProducts=()=>{}, onOpenComments, currentMember, contentSeries=[], onManageSeries }) {
   const [showTemplates, setShowTemplates] = useState(false);
   const [showSeriesManager, setShowSeriesManager] = useState(false);
   const [form, setForm] = useState(() => {
@@ -782,6 +782,7 @@ export function ContentForm({ initial, campaigns, onSave, onDelete, onClose, loc
             <span>Comments</span>
           </button>
         )}
+        {onDuplicate && <button onClick={()=>{onDuplicate();onClose();}} className="px-4 py-2 text-sm text-rich-black/30 hover:text-rich-black transition-colors font-inter">Duplicate</button>}
         {onDelete && <button onClick={()=>{onDelete();onClose();}} className="px-4 py-2 text-sm text-red-400 hover:text-red-600">Delete</button>}
       </div>
     </>
