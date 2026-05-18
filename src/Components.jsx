@@ -77,6 +77,78 @@ export function SeriesTag({ name, seriesList }) {
   );
 }
 
+// ── Campaign metadata helpers ─────────────────────────────────────────────
+// formatDropCountdown — returns { text, urgent, past } or null.
+//   text  : human phrase ("Drops in 12 days", "Drops today", "Dropped 3 days ago")
+//   urgent: drop is within the next 7 days
+//   past  : the drop has already happened
+export function formatDropCountdown(dropDateStr) {
+  if (!dropDateStr) return null;
+  const drop = new Date(dropDateStr + "T00:00:00");
+  if (isNaN(drop.getTime())) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const days = Math.round((drop - today) / 86400000);
+  if (days === 0) return { text: "Drops today", urgent: true, past: false };
+  if (days === 1) return { text: "Drops tomorrow", urgent: true, past: false };
+  if (days === -1) return { text: "Dropped yesterday", urgent: false, past: true };
+  if (days > 0)   return { text: `Drops in ${days} days`, urgent: days <= 7, past: false };
+  return { text: `Dropped ${Math.abs(days)} days ago`, urgent: false, past: true };
+}
+
+// getCampaignPosition — { position, total } for an item within its campaign,
+// or null if the campaign has fewer than 2 items. Uses `seq` field when present,
+// falls back to created_at order.
+export function getCampaignPosition(item, allItems, campaignId) {
+  if (!campaignId) return null;
+  const peers = (allItems || []).filter(i => String(i.campaignId) === String(campaignId));
+  if (peers.length < 2) return null;
+  const sorted = [...peers].sort((a, b) => {
+    const sa = a.seq ?? 9999, sb = b.seq ?? 9999;
+    if (sa !== sb) return sa - sb;
+    return String(a.created_at || "").localeCompare(String(b.created_at || ""));
+  });
+  const idx = sorted.findIndex(i => i.id === item.id);
+  if (idx === -1) return null;
+  return { position: idx + 1, total: sorted.length };
+}
+
+// CampaignMeta — one coherent block of campaign info for a content card.
+// Shows the campaign pill, position-in-campaign, and drop countdown on one
+// line; key message on a second editorial line. Each piece is rendered only
+// if its data exists, so the block degrades gracefully.
+//
+// Props: campaign (object|null), position ({position,total}|null),
+//        dropCountdown ({text,urgent,past}|null), compact (bool)
+export function CampaignMeta({ campaign, position, dropCountdown, compact = false }) {
+  if (!campaign) return null;
+  const dotPieces = [];
+  if (position && !compact) dotPieces.push(`Post ${position.position} of ${position.total}`);
+  if (dropCountdown && !compact) dotPieces.push(dropCountdown.text);
+  return (
+    <div className="mt-1.5">
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "#F0588118", color: "#F05881" }}>
+          ↗ {campaign.name}
+        </span>
+        {dotPieces.length > 0 && (
+          <span
+            className="text-[11px] font-inter font-medium"
+            style={{ color: dropCountdown?.urgent ? "#A23053" : "#1A1A1A55" }}
+          >
+            {dotPieces.join(" · ")}
+          </span>
+        )}
+      </div>
+      {!compact && campaign.keyMessage && (
+        <p className="text-xs text-rich-black/45 mt-1 line-clamp-1 italic font-arizona">
+          "{campaign.keyMessage}"
+        </p>
+      )}
+    </div>
+  );
+}
+
 // ── Series Picker (for ContentForm) ───────────────────────────────────────
 export function SeriesPicker({ value, onChange, series = [], onManage }) {
   return (

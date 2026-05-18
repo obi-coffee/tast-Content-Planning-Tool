@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { PIPELINE_STAGES, CHANNEL_OPTIONS, TYPE_OPTIONS, STAGE_META, TYPE_COLORS, driveThumb, Tag, Modal, Inp, Sel, Txt, ChannelPicker, CampaignProgress, ContentForm, flattenChannels, normalizeChannels, PhaseTag, PHASES, getPhaseForDate, EmptyState, CommentBadge, SeriesTag, SeriesManager } from "./Components.jsx";
+import { PIPELINE_STAGES, CHANNEL_OPTIONS, TYPE_OPTIONS, STAGE_META, TYPE_COLORS, driveThumb, Tag, Modal, Inp, Sel, Txt, ChannelPicker, CampaignProgress, ContentForm, flattenChannels, normalizeChannels, PhaseTag, PHASES, getPhaseForDate, EmptyState, CommentBadge, SeriesTag, SeriesManager, CampaignMeta, formatDropCountdown, getCampaignPosition } from "./Components.jsx";
 import { Avatar } from "./components/Avatar.jsx";
 import CommentsPanel from "./components/CommentsPanel.jsx";
 
@@ -37,11 +37,14 @@ const PLATFORM_COLORS = {
 };
 
 // ── Content Card ───────────────────────────────────────────────────────────
-function ContentCard({ item, campaigns, onClick, compact, currentMember, commentCount = 0, selected, onToggleSelect, contentSeries = [] }) {
+function ContentCard({ item, campaigns, allItems, onClick, compact, currentMember, commentCount = 0, selected, onToggleSelect, contentSeries = [] }) {
   const [showComments, setShowComments] = useState(false);
   const campaign = campaigns.find(c=>String(c.id)===String(item.campaignId));
   const channels = flattenChannels(item.channels);
   const thumb = driveThumb(item.driveUrl);
+  // Campaign metadata — computed once, rendered as one block below the title.
+  const dropCountdown = campaign ? formatDropCountdown(campaign.dropDate) : null;
+  const position      = campaign ? getCampaignPosition(item, allItems, campaign.id) : null;
   return (
     <>
       <div onClick={onClick} className="bg-white rounded-xl border cursor-pointer hover:border-no2 hover:shadow-md transition-all duration-200 mb-2 overflow-hidden"
@@ -60,8 +63,12 @@ function ContentCard({ item, campaigns, onClick, compact, currentMember, comment
             </div>
             {commentCount > 0 && <CommentBadge count={commentCount} onClick={() => setShowComments(true)} />}
           </div>
-          {!compact && campaign && <div className="mt-1.5"><span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{background:"#F0588118",color:"#F05881"}}>&#8599; {campaign.name}</span></div>}
-          {!compact && campaign?.keyMessage && <p className="text-xs text-rich-black/40 mt-1 line-clamp-1 italic font-arizona">"{campaign.keyMessage}"</p>}
+          {!compact && (
+            <CampaignMeta campaign={campaign} position={position} dropCountdown={dropCountdown} />
+          )}
+          {compact && campaign && (
+            <div className="mt-1"><span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium" style={{background:"#F0588118",color:"#F05881"}}>↗ {campaign.name}</span></div>
+          )}
           {!compact && item.draftCopy && <p className="text-xs text-rich-black/40 mt-1 line-clamp-2 border-l-2 pl-2 border-rich-black/10">{item.draftCopy}</p>}
           <div className={`flex flex-wrap gap-1 ${compact?"mt-1":"mt-2"}`}>
             {!compact && item.type && <SeriesTag name={item.type} seriesList={contentSeries} />}
@@ -363,7 +370,7 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
                 </div>
                 {stageItems.map(item=>(
                   <div key={item.id} draggable onDragStart={()=>setDragItem(item)} className="transition-opacity duration-150" style={{opacity:dragItem?.id===item.id?0.4:1}}>
-                    <ContentCard item={item} campaigns={campaigns} onClick={()=>openEdit(item)} compact={isMobile} currentMember={currentMember} contentSeries={contentSeries}
+                    <ContentCard item={item} campaigns={campaigns} allItems={items} onClick={()=>openEdit(item)} compact={isMobile} currentMember={currentMember} contentSeries={contentSeries}
                       commentCount={commentCounts[item.id] || 0}
                       selected={selectedIds.has(item.id)} onToggleSelect={bulkMode ? toggleSelect : null} />
                   </div>
@@ -395,6 +402,8 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
                   const channels = flattenChannels(item.channels);
                   const thumb = driveThumb(item.driveUrl);
                   const cc = commentCounts[item.id] || 0;
+                  const dropCountdown = campaign ? formatDropCountdown(campaign.dropDate) : null;
+                  const position      = campaign ? getCampaignPosition(item, items, campaign.id) : null;
                   return (
                     <div key={item.id} onClick={()=>openEdit(item)}
                       className="bg-white rounded-xl border border-rich-black/8 px-4 py-3 shadow-sm cursor-pointer hover:border-no2 hover:shadow-md mb-1.5 flex items-center gap-3">
@@ -406,16 +415,19 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="font-medium text-rich-black text-sm">{item.title}</p>
-                          {campaign && <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{background:"#fff0f4",color:"#F05881"}}>↗ {campaign.name}</span>}
                           {cc > 0 && <CommentBadge count={cc} />}
                         </div>
-                        {campaign?.keyMessage && <p className="text-xs text-rich-black/30 mt-0.5 italic line-clamp-1">"{campaign.keyMessage}"</p>}
+                        {campaign && (
+                          <div className="mt-0.5">
+                            <CampaignMeta campaign={campaign} position={position} dropCountdown={dropCountdown} />
+                          </div>
+                        )}
                         {item.draftCopy && <p className="text-xs text-rich-black/30 mt-0.5 line-clamp-1">{item.draftCopy}</p>}
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
                         {item.assigneeId && <Avatar memberId={item.assigneeId} size={18} />}
                         {channels.map(ch=><Tag key={ch} label={ch} colorClass="bg-rich-black/5 text-rich-black/40" />)}
-                        {item.date && <span className="text-xs text-rich-black/20 ml-1">{item.date}</span>}
+                        {item.date && <span className="text-xs text-rich-black/20 ml-1 font-mono">{item.date}</span>}
                       </div>
                     </div>
                   );
