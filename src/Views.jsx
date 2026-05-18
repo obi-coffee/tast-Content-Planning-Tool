@@ -279,11 +279,11 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
         </div>
       )}
 
-      {/* Platform filter pills */}
+      {/* Platform filter pills — selected = rich-black (state), not pink (CTA) */}
       <div className="flex gap-1.5 flex-wrap mb-2">
         <button onClick={()=>setPlatformFilter("all")}
           className="text-xs px-2.5 py-1 rounded-full border font-medium transition-all"
-          style={platformFilter==="all"?{background:"#F05881",color:"white",borderColor:"#F05881"}:{background:"white",color:"#1A1A1A60",borderColor:"#1A1A1A15"}}>
+          style={platformFilter==="all"?{background:"#1A1A1A",color:"white",borderColor:"#1A1A1A"}:{background:"white",color:"#1A1A1A60",borderColor:"#1A1A1A15"}}>
           All platforms
         </button>
         {CHANNEL_OPTIONS.map(ch => {
@@ -291,7 +291,7 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
           return (
             <button key={ch} onClick={()=>setPlatformFilter(platformFilter===ch?"all":ch)}
               className="text-xs px-2.5 py-1 rounded-full border font-medium transition-all"
-              style={platformFilter===ch?{background:"#F05881",color:"white",borderColor:"#F05881"}:{background:"white",color:"#1A1A1A60",borderColor:"#1A1A1A15"}}>
+              style={platformFilter===ch?{background:"#1A1A1A",color:"white",borderColor:"#1A1A1A"}:{background:"white",color:"#1A1A1A60",borderColor:"#1A1A1A15"}}>
               {ch} <span className="opacity-60">({count})</span>
             </button>
           );

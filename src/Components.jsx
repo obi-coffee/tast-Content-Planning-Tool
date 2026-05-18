@@ -454,13 +454,15 @@ export function EmptyState({ icon = "*", title, description, actionLabel, onActi
 }
 
 // ── Comment Badge ─────────────────────────────────────────────────────────
+// Uses raspberry (#A23053) — secondary emphasis, per the April 2026 guide.
+// Pink is reserved for primary CTAs; counts are emphasis, not CTAs.
 export function CommentBadge({ count, onClick }) {
   if (!count) return null;
   return (
     <button
       onClick={e => { e.stopPropagation(); onClick?.(); }}
-      className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full transition-colors hover:bg-[#F05881]/10"
-      style={{ color: "#F05881" }}
+      className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full transition-colors hover:bg-[#A23053]/10"
+      style={{ color: "#A23053" }}
       title={`${count} comment${count !== 1 ? 's' : ''}`}
     >
       <span style={{ fontSize: 10 }}>💬</span>
