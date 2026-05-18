@@ -332,9 +332,9 @@ export function Pipeline({ items, addItem, updateItem, deleteItem, campaigns, pr
       {items.length === 0 ? (
         <EmptyState
           icon="+"
-          title="No content yet"
-          description="Start building your content pipeline. Add your first piece of content or import from CSV."
-          actionLabel="+ Add Content"
+          title="Nothing in the pipeline yet."
+          description="A pipeline is just a list of things you're working on. Got an idea? Add it, even if it's rough. Or pull in last quarter's calendar via Import CSV."
+          actionLabel="Add the first one"
           onAction={() => { setEditItem(null); setShowForm(true); }}
         />
       ) : view==="kanban" ? (

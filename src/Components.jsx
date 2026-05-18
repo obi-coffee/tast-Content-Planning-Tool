@@ -442,12 +442,19 @@ export function PhaseTag({ dateStr, className = "" }) {
 }
 
 // ── Empty State ───────────────────────────────────────────────────────────
+// Brand pattern: acknowledge + invite. Description renders in editorial
+// Georgia italic so a "no content yet" moment reads like a friendly note,
+// not a system error.
 export function EmptyState({ icon = "*", title, description, actionLabel, onAction }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-rich-black/5 flex items-center justify-center text-2xl text-rich-black/20 mb-4">{icon}</div>
-      <p className="text-sm font-inter font-semibold text-rich-black mb-1">{title}</p>
-      {description && <p className="text-xs text-rich-black/40 max-w-xs mb-4">{description}</p>}
+      <div className="w-14 h-14 rounded-2xl bg-rich-black/5 flex items-center justify-center text-2xl text-rich-black/25 mb-4">{icon}</div>
+      <p className="text-base font-inter font-semibold text-rich-black mb-1.5">{title}</p>
+      {description && (
+        <p className="font-arizona text-sm text-rich-black/50 italic max-w-sm mb-5 leading-relaxed">
+          {description}
+        </p>
+      )}
       {actionLabel && onAction && (
         <button onClick={onAction}
           className="text-sm text-white px-5 py-2.5 rounded-lg bg-pink hover:opacity-90 transition-opacity font-inter font-medium">
