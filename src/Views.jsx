@@ -27,6 +27,15 @@ function getItemColor(item, products) {
   return { color: mc.color };
 }
 
+// ── Platform border colors ────────────────────────────────────────────────
+const PLATFORM_COLORS = {
+  "Instagram":       "#F05881",
+  "Email":           "#A23053",
+  "Instagram Reels": "#EF4056",
+  "LinkedIn":        "#1A1A1A",
+  "Website":         "#F287B7",
+};
+
 // ── Content Card ───────────────────────────────────────────────────────────
 function ContentCard({ item, campaigns, onClick, compact, currentMember, commentCount = 0, selected, onToggleSelect, contentSeries = [] }) {
   const [showComments, setShowComments] = useState(false);
@@ -36,7 +45,7 @@ function ContentCard({ item, campaigns, onClick, compact, currentMember, comment
   return (
     <>
       <div onClick={onClick} className="bg-white rounded-xl border cursor-pointer hover:border-no2 hover:shadow-md transition-all duration-200 mb-2 overflow-hidden"
-        style={{ borderColor: selected ? '#F05881' : '#1A1A1A15' }}>
+        style={{ borderColor: selected ? '#F05881' : '#1A1A1A15', borderLeftWidth: 3, borderLeftColor: PLATFORM_COLORS[normalizeChannels(item.channels).primary] || '#1A1A1A20' }}>
         {thumb && !compact && <img src={thumb} alt="" className="w-full object-cover" style={{height:100}} onError={e=>e.target.style.display="none"} />}
         <div className={compact?"p-2":"p-3"}>
           <div className="flex items-start gap-2">

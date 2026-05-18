@@ -4,20 +4,25 @@ import { Avatar } from "./components/Avatar.jsx";
 
 const CHANNEL = "Instagram";
 
-// ── Placeholder tile when no image ────────────────────────────────────────
+// iPhone 15 Pro dimensions at ~0.45 scale
+const PHONE_W = 178;
+const PHONE_H = 386;
+const CELL_SIZE = Math.floor((PHONE_W - 2) / 3); // 3 columns, 1px gaps
+const CELL_GAP = 1;
+
 function PlaceholderTile({ item, size }) {
   const stage = item?.stage || "Idea";
   const color = STAGE_META[stage]?.color || "#a8a29e";
   return (
     <div
-      className="w-full h-full flex flex-col items-center justify-center gap-1 px-2"
+      className="w-full h-full flex flex-col items-center justify-center gap-0.5 px-1"
       style={{ background: color + "18" }}
     >
-      <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: color + "33" }}>
-        <span style={{ color, fontSize: 12 }}>✦</span>
+      <div className="w-4 h-4 rounded-full flex items-center justify-center" style={{ background: color + "33" }}>
+        <span style={{ color, fontSize: 8 }}>{"*"}</span>
       </div>
       {size !== "sm" && (
-        <p className="text-center font-medium leading-tight" style={{ color, fontSize: size === "lg" ? 11 : 9, maxWidth: "90%" }}>
+        <p className="text-center font-medium leading-tight" style={{ color, fontSize: 7, maxWidth: "90%" }}>
           {item?.title || "Empty"}
         </p>
       )}
@@ -25,69 +30,53 @@ function PlaceholderTile({ item, size }) {
   );
 }
 
-// ── Single grid cell ───────────────────────────────────────────────────────
-function GridCell({ item, index, isHighlighted, onClick, size = "md" }) {
+function GridCell({ item, index, isHighlighted, onClick }) {
   const thumb = item ? driveThumb(item.driveUrl) : null;
   const [imgErr, setImgErr] = useState(false);
   const stage = item?.stage || "Idea";
   const color = STAGE_META[stage]?.color || "#e7e5e4";
 
-  const cellSize = size === "lg" ? 180 : size === "sm" ? 80 : 130;
-
   return (
     <div
       onClick={() => item && onClick(item)}
-      className="relative overflow-hidden flex-shrink-0 transition-all"
+      className="relative overflow-hidden flex-shrink-0"
       style={{
-        width: cellSize,
-        height: cellSize,
+        width: CELL_SIZE,
+        height: CELL_SIZE,
         cursor: item ? "pointer" : "default",
-        outline: isHighlighted ? `3px solid #F05881` : "3px solid transparent",
-        outlineOffset: -3,
+        outline: isHighlighted ? "2px solid #F05881" : "2px solid transparent",
+        outlineOffset: -2,
         background: "#f7f6f5",
       }}
     >
       {thumb && !imgErr ? (
-        <img
-          src={thumb}
-          alt={item?.title}
-          className="w-full h-full object-cover"
-          onError={() => setImgErr(true)}
-        />
+        <img src={thumb} alt={item?.title} className="w-full h-full object-cover" onError={() => setImgErr(true)} />
       ) : (
-        <PlaceholderTile item={item} size={size} />
+        <PlaceholderTile item={item} size="sm" />
       )}
 
-      {/* Hover overlay */}
       {item && (
         <div className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity flex flex-col justify-end"
           style={{ background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)" }}>
-          <div className="p-2">
-            <p className="text-white font-semibold leading-tight" style={{ fontSize: size === "sm" ? 8 : 10 }}>{item.title}</p>
-            {size !== "sm" && item.date && (
-              <p className="text-white/70" style={{ fontSize: 9 }}>{item.date}</p>
-            )}
+          <div className="p-1">
+            <p className="text-white font-semibold leading-tight" style={{ fontSize: 8 }}>{item.title}</p>
           </div>
         </div>
       )}
 
-      {/* Stage dot */}
       {item && (
-        <div className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full shadow-sm"
-          style={{ background: color, border: "1.5px solid white" }} />
+        <div className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full shadow-sm"
+          style={{ background: color, border: "1px solid white" }} />
       )}
 
-      {/* Carousel indicator */}
       {item && item.driveUrls?.length > 1 && (
-        <div className="absolute top-1.5 left-1.5 bg-black/50 rounded px-1 py-0.5 flex items-center gap-0.5">
-          <span style={{ color: "white", fontSize: 8 }}>⧉</span>
-          <span style={{ color: "white", fontSize: 8 }}>{item.driveUrls.length}</span>
+        <div className="absolute top-1 left-1 bg-black/50 rounded px-0.5 py-px flex items-center gap-px">
+          <span style={{ color: "white", fontSize: 6 }}>{"+"}{item.driveUrls.length}</span>
         </div>
       )}
 
-      {/* Empty slot number */}
       {!item && (
-        <span className="absolute inset-0 flex items-center justify-center text-rich-black/20 font-medium" style={{ fontSize: 11 }}>
+        <span className="absolute inset-0 flex items-center justify-center text-rich-black/15 font-medium" style={{ fontSize: 9 }}>
           #{index + 1}
         </span>
       )}
@@ -95,7 +84,6 @@ function GridCell({ item, index, isHighlighted, onClick, size = "md" }) {
   );
 }
 
-// ── Detail panel ───────────────────────────────────────────────────────────
 function DetailPanel({ item, campaigns, onClose, onEdit, commentCount = 0 }) {
   const campaign = campaigns.find(c => String(c.id) === String(item.campaignId));
   const thumb = driveThumb(item.driveUrl);
@@ -105,7 +93,6 @@ function DetailPanel({ item, campaigns, onClose, onEdit, commentCount = 0 }) {
 
   return (
     <div className="bg-white rounded-2xl border border-rich-black/8 shadow-xl overflow-hidden" style={{ maxWidth: 380 }}>
-      {/* Image */}
       <div className="w-full bg-rich-black/5 relative" style={{ height: 220 }}>
         {thumb && !imgErr ? (
           <img src={thumb} alt={item.title} className="w-full h-full object-cover" onError={() => setImgErr(true)} />
@@ -114,7 +101,7 @@ function DetailPanel({ item, campaigns, onClose, onEdit, commentCount = 0 }) {
         )}
         <button onClick={onClose}
           className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center text-sm hover:bg-black/60 transition-colors">
-          ✕
+          {"×"}
         </button>
         {item.driveUrls?.length > 1 && (
           <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
@@ -125,7 +112,6 @@ function DetailPanel({ item, campaigns, onClose, onEdit, commentCount = 0 }) {
         )}
       </div>
 
-      {/* Carousel strip */}
       {item.driveUrls?.length > 1 && (
         <div className="flex gap-1.5 px-3 pt-2 overflow-x-auto">
           {item.driveUrls.map((url, i) => (
@@ -145,7 +131,7 @@ function DetailPanel({ item, campaigns, onClose, onEdit, commentCount = 0 }) {
         </div>
 
         {campaign && (
-          <p className="text-xs mb-2 font-medium" style={{ color: "#F05881" }}>↗ {campaign.name}</p>
+          <p className="text-xs mb-2 font-medium" style={{ color: "#F05881" }}>{"↗"} {campaign.name}</p>
         )}
 
         {item.draftCopy && (
@@ -163,8 +149,7 @@ function DetailPanel({ item, campaigns, onClose, onEdit, commentCount = 0 }) {
         </div>
 
         <button onClick={() => onEdit(item)}
-          style={{ background: "#F05881" }}
-          className="mt-3 w-full text-white text-sm py-2 rounded-lg font-medium hover:opacity-90 transition-opacity">
+          className="mt-3 w-full bg-pink text-white text-sm py-2 rounded-lg font-medium hover:opacity-90 transition-opacity">
           Edit post
         </button>
       </div>
@@ -177,15 +162,11 @@ export function InstagramGrid({ items, addItem, updateItem, deleteItem, campaign
   const [selected, setSelected] = useState(null);
   const [editItem, setEditItem] = useState(null);
   const [showEditForm, setShowEditForm] = useState(false);
-  const [gridSize, setGridSize] = useState("md");
-  const [filter, setFilter] = useState("all"); // all | scheduled | unscheduled | published
+  const [filter, setFilter] = useState("all");
 
-  // Only Instagram posts, sorted by date then by created
   const igItems = useMemo(() => {
     return items
-      .filter(i => {
-        return flattenChannels(i.channels).includes(CHANNEL);
-      })
+      .filter(i => flattenChannels(i.channels).includes(CHANNEL))
       .filter(i => {
         if (filter === "scheduled") return i.date && i.stage !== "Published";
         if (filter === "unscheduled") return !i.date;
@@ -200,16 +181,13 @@ export function InstagramGrid({ items, addItem, updateItem, deleteItem, campaign
       });
   }, [items, filter]);
 
-  // Build 3-col grid, pad to fill last row
   const gridItems = useMemo(() => {
     const padded = [...igItems];
     while (padded.length % 3 !== 0) padded.push(null);
-    // Show at least 9 slots
     while (padded.length < 9) padded.push(null);
     return padded;
   }, [igItems]);
 
-  // Split into rows of 3
   const rows = useMemo(() => {
     const r = [];
     for (let i = 0; i < gridItems.length; i += 3) r.push(gridItems.slice(i, i + 3));
@@ -226,10 +204,6 @@ export function InstagramGrid({ items, addItem, updateItem, deleteItem, campaign
     }
   };
 
-  const cellSize = gridSize === "lg" ? 180 : gridSize === "sm" ? 80 : 130;
-  const gap = 3;
-
-  // Stats
   const publishedCount = igItems.filter(i => i.stage === "Published").length;
   const scheduledCount = igItems.filter(i => i.date && i.stage !== "Published").length;
   const unscheduledCount = igItems.filter(i => !i.date).length;
@@ -240,26 +214,13 @@ export function InstagramGrid({ items, addItem, updateItem, deleteItem, campaign
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div>
           <h2 className="font-inter text-xl font-bold text-rich-black">Instagram Grid</h2>
-          <p className="text-xs text-rich-black/30 mt-0.5">{igItems.length} post{igItems.length !== 1 ? "s" : ""} · visual feed preview</p>
+          <p className="text-xs text-rich-black/30 mt-0.5">{igItems.length} post{igItems.length !== 1 ? "s" : ""} · feed preview</p>
         </div>
-        <div className="flex items-center gap-2">
-          {/* Size toggle */}
-          <div className="flex bg-rich-black/5 rounded-lg p-0.5">
-            {[["sm", "S"], ["md", "M"], ["lg", "L"]].map(([v, l]) => (
-              <button key={v} onClick={() => setGridSize(v)}
-                className="text-xs px-2.5 py-1.5 rounded-md font-medium transition-all"
-                style={gridSize === v ? { background: "#F05881", color: "white" } : { color: "#78716c" }}>
-                {l}
-              </button>
-            ))}
-          </div>
-          <button
-            onClick={() => { setEditItem({ channels: ["Instagram"], stage: "Idea", type: "Product Launch" }); setShowEditForm(true); }}
-            style={{ background: "#F05881" }}
-            className="text-white text-sm px-4 py-2 rounded-lg font-medium hover:opacity-90">
-            + Add post
-          </button>
-        </div>
+        <button
+          onClick={() => { setEditItem({ channels: { primary: "Instagram", secondary: [] }, stage: "Idea", type: "" }); setShowEditForm(true); }}
+          className="bg-pink text-white text-sm px-4 py-2 rounded-lg font-medium hover:opacity-90 font-inter">
+          + Add post
+        </button>
       </div>
 
       {/* Filter pills */}
@@ -271,72 +232,114 @@ export function InstagramGrid({ items, addItem, updateItem, deleteItem, campaign
           ["unscheduled", `Unscheduled (${unscheduledCount})`],
         ].map(([v, l]) => (
           <button key={v} onClick={() => { setFilter(v); setSelected(null); }}
-            className="text-xs px-3 py-1.5 rounded-full border font-medium transition-all"
+            className="text-xs px-3 py-1.5 rounded-full border font-medium font-inter transition-all duration-150"
             style={filter === v
               ? { background: "#F05881", color: "white", borderColor: "#F05881" }
-              : { background: "white", color: "#78716c", borderColor: "#e7e5e4" }}>
+              : { background: "white", color: "#1A1A1A60", borderColor: "#1A1A1A15" }}>
             {l}
           </button>
         ))}
       </div>
 
       <div className="flex flex-col md:flex-row gap-6 items-start">
-        {/* Grid */}
+        {/* iPhone frame */}
         <div className="flex-shrink-0">
-          {/* Phone frame */}
-          <div className="rounded-3xl overflow-hidden shadow-xl border-4 border-stone-800 bg-stone-800 inline-block">
-            {/* Notch bar */}
-            <div className="h-6 bg-stone-800 flex items-center justify-center">
-              <div className="w-16 h-1.5 rounded-full bg-stone-600" />
-            </div>
-            {/* IG top bar */}
-            <div className="bg-white flex items-center justify-between px-3 py-2 border-b border-rich-black/8" style={{ width: (cellSize * 3) + (gap * 2) }}>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full flex items-center justify-center text-white font-bold text-xs" style={{ background: "#F05881" }}>t</div>
-                <span className="text-xs font-semibold text-rich-black">tāst.coffee</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-rich-black/30 text-sm">＋</span>
-                <span className="text-rich-black/30 text-sm">☰</span>
+          <div className="inline-block rounded-[2rem] overflow-hidden shadow-2xl" style={{ background: "#1A1A1A", padding: "12px 4px" }}>
+            {/* Dynamic Island */}
+            <div className="flex justify-center mb-2">
+              <div className="w-20 h-[22px] rounded-full bg-[#1A1A1A] relative" style={{ background: "#000" }}>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full" style={{ background: "#1a2a1a" }} />
               </div>
             </div>
-            {/* IG profile stub */}
-            <div className="bg-white px-3 py-2.5 flex items-center gap-3 border-b border-rich-black/8">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0" style={{ background: "linear-gradient(135deg,#F05881,#a12f52)" }}>t</div>
-              <div>
-                <p className="text-xs font-semibold text-rich-black">tāst coffee</p>
-                <p className="text-xs text-rich-black/30">Coffee for the Live Ones</p>
-              </div>
-            </div>
-            {/* Grid */}
-            <div className="bg-white" style={{ width: (cellSize * 3) + (gap * 2) }}>
-              {rows.map((row, ri) => (
-                <div key={ri} className="flex" style={{ gap }}>
-                  {row.map((item, ci) => {
-                    const idx = ri * 3 + ci;
-                    return (
-                      <GridCell
-                        key={idx}
-                        item={item}
-                        index={idx}
-                        isHighlighted={selected?.id === item?.id}
-                        onClick={setSelected}
-                        size={gridSize}
-                      />
-                    );
-                  })}
+
+            <div className="rounded-2xl overflow-hidden" style={{ width: PHONE_W, background: "white" }}>
+              {/* IG Header bar */}
+              <div className="flex items-center justify-between px-3 h-[34px] border-b border-rich-black/5">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-[18px] h-[18px] rounded-full flex items-center justify-center text-white font-bold" style={{ background: "#F05881", fontSize: 8 }}>t</div>
+                  <span className="font-semibold text-rich-black" style={{ fontSize: 10 }}>tast.coffee</span>
+                  <span className="text-rich-black/30" style={{ fontSize: 8 }}>{"▾"}</span>
                 </div>
-              ))}
+                <div className="flex gap-2.5">
+                  <span className="text-rich-black/40" style={{ fontSize: 12 }}>+</span>
+                  <span className="text-rich-black/40" style={{ fontSize: 12 }}>{"☰"}</span>
+                </div>
+              </div>
+
+              {/* IG Profile section */}
+              <div className="px-3 py-2">
+                <div className="flex items-center gap-3">
+                  <div className="w-[52px] h-[52px] rounded-full p-[2px]" style={{ background: "linear-gradient(135deg, #F05881, #A23053)" }}>
+                    <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
+                      <div className="w-[44px] h-[44px] rounded-full flex items-center justify-center text-white font-bold" style={{ background: "#F05881", fontSize: 16 }}>t</div>
+                    </div>
+                  </div>
+                  <div className="flex-1 flex justify-around text-center">
+                    <div><p className="font-bold text-rich-black" style={{ fontSize: 11 }}>{igItems.length}</p><p className="text-rich-black/40" style={{ fontSize: 8 }}>posts</p></div>
+                    <div><p className="font-bold text-rich-black" style={{ fontSize: 11 }}>—</p><p className="text-rich-black/40" style={{ fontSize: 8 }}>followers</p></div>
+                    <div><p className="font-bold text-rich-black" style={{ fontSize: 11 }}>—</p><p className="text-rich-black/40" style={{ fontSize: 8 }}>following</p></div>
+                  </div>
+                </div>
+                <div className="mt-1.5">
+                  <p className="font-semibold text-rich-black" style={{ fontSize: 9 }}>tast coffee</p>
+                  <p className="text-rich-black/40" style={{ fontSize: 8 }}>Coffee for the Live Ones.</p>
+                </div>
+                <div className="mt-1.5 flex gap-1">
+                  <div className="flex-1 rounded-md flex items-center justify-center bg-rich-black/5" style={{ height: 22 }}>
+                    <span className="font-semibold text-rich-black" style={{ fontSize: 8 }}>Edit profile</span>
+                  </div>
+                  <div className="flex-1 rounded-md flex items-center justify-center bg-rich-black/5" style={{ height: 22 }}>
+                    <span className="font-semibold text-rich-black" style={{ fontSize: 8 }}>Share profile</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tab bar (grid/reels/tags) */}
+              <div className="flex border-b border-rich-black/8">
+                <div className="flex-1 flex items-center justify-center py-1.5 border-b-[1.5px] border-rich-black">
+                  <span className="text-rich-black" style={{ fontSize: 12 }}>{"⊞"}</span>
+                </div>
+                <div className="flex-1 flex items-center justify-center py-1.5">
+                  <span className="text-rich-black/25" style={{ fontSize: 12 }}>{"▶"}</span>
+                </div>
+                <div className="flex-1 flex items-center justify-center py-1.5">
+                  <span className="text-rich-black/25" style={{ fontSize: 12 }}>{"◻"}</span>
+                </div>
+              </div>
+
+              {/* Grid */}
+              <div>
+                {rows.map((row, ri) => (
+                  <div key={ri} className="flex" style={{ gap: CELL_GAP }}>
+                    {row.map((item, ci) => {
+                      const idx = ri * 3 + ci;
+                      return (
+                        <GridCell
+                          key={idx}
+                          item={item}
+                          index={idx}
+                          isHighlighted={selected?.id === item?.id}
+                          onClick={setSelected}
+                        />
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+
+              {/* Bottom nav */}
+              <div className="h-[32px] flex items-center justify-around px-3 border-t border-rich-black/5">
+                <span style={{ fontSize: 13 }}>{"⌂"}</span>
+                <span className="text-rich-black/30" style={{ fontSize: 13 }}>{"◎"}</span>
+                <span className="text-rich-black/30" style={{ fontSize: 13 }}>{"+"}</span>
+                <span className="text-rich-black/30" style={{ fontSize: 13 }}>{"▶"}</span>
+                <div className="w-[16px] h-[16px] rounded-full bg-rich-black/10" />
+              </div>
             </div>
-            {/* Bottom bar */}
-            <div className="bg-white h-8 flex items-center justify-around px-4 border-t border-rich-black/8">
-              {["⌂", "🔍", "＋", "♡", "◯"].map((icon, i) => (
-                <span key={i} className="text-rich-black/30" style={{ fontSize: 14 }}>{icon}</span>
-              ))}
-            </div>
+
             {/* Home indicator */}
-            <div className="h-5 bg-stone-800 flex items-center justify-center">
-              <div className="w-20 h-1 rounded-full bg-stone-600" />
+            <div className="flex justify-center mt-2">
+              <div className="w-20 h-1 rounded-full" style={{ background: "#555" }} />
             </div>
           </div>
 
@@ -363,10 +366,10 @@ export function InstagramGrid({ items, addItem, updateItem, deleteItem, campaign
             />
           ) : (
             <div className="text-center py-12 text-rich-black/20">
-              <p className="text-4xl mb-3">◫</p>
+              <p className="text-4xl mb-3">{"◫"}</p>
               <p className="text-sm">Tap a post to preview details</p>
               {igItems.length === 0 && (
-                <p className="text-xs mt-2 text-rich-black/20">No Instagram posts yet — add one to get started</p>
+                <p className="text-xs mt-2 text-rich-black/15">No Instagram posts yet — add one to get started</p>
               )}
             </div>
           )}
